@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Shader5</title>
+    <style>
+        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; }
+        .controls { margin-bottom: 20px; }
+        .control { margin: 10px 0; }
+        label { display: inline-block; width: 120px; }
+        input[type="range"] { width: 200px; }
+        #canvas { border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <h1>Test Shader5 Effect</h1>
+    <div class="controls">
+        <div class="control">
+            <label>Acuarela:</label>
+            <input type="range" id="watercolor" min="0" max="100" value="85">
+            <span id="watercolor-value">85</span>
+        </div>
+        <div class="control">
+            <label>Semitono:</label>
+            <input type="range" id="density" min="1" max="15" value="13">
+            <span id="density-value">13</span>
+        </div>
+    </div>
+    <canvas id="canvas" width="400" height="400"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const watercolorSlider = document.getElementById('watercolor');
+        const densitySlider = document.getElementById('density');
+        const watercolorValue = document.getElementById('watercolor-value');
+        const densityValue = document.getElementById('density-value');
+
+        // Funciones de ruido simplificadas
+        function random(x, y) {
+            return Math.abs(Math.sin(x * 12.9898 + y * 78.233) * 43758.5453123) % 1;
+        }
+
+        function noise(x, y, z = 0) {
+            const ix = Math.floor(x);
+            const iy = Math.floor(y);
+            const iz = Math.floor(z);
+            const fx = x - ix;
+            const fy = y - iy;
+            const fz = z - iz;
+            
+            const a = random(ix, iy + iz);
+            const b = random(ix + 1, iy + iz);
+            const c = random(ix, iy + 1 + iz);
+            const d = random(ix + 1, iy + 1 + iz);
+            
+            const u = fx * fx * (3 - 2 * fx);
+            const v = fy * fy * (3 - 2 * fy);
+            
+            return a * (1 - u) * (1 - v) + b * u * (1 - v) + c * (1 - u) * v + d * u * v;
+        }
+
+        function mapValue(value, start1, stop1, start2, stop2) {
+            return start2 + (stop2 - start2) * ((value - start1) / (stop1 - start1));
+        }
+
+        function hsbToRgb(h, s, b) {
+            let r, g, blue;
+            const i = Math.floor(h * 6);
+            const f = h * 6 - i;
+            const p = b * (1 - s);
+            const q = b * (1 - f * s);
+            const t = b * (1 - (1 - f) * s);
+            
+            switch (i % 6) {
+                case 0: r = b, g = t, blue = p; break;
+                case 1: r = q, g = b, blue = p; break;
+                case 2: r = p, g = b, blue = t; break;
+                case 3: r = p, g = q, blue = b; break;
+                case 4: r = t, g = p, blue = b; break;
+                case 5: r = b, g = p, blue = q; break;
+            }
+            
+            return { r, g, b: blue };
+        }
+
+        function drawShader5Effect() {
+            const watercolorIntensity = parseInt(watercolorSlider.value);
+            const desired = parseInt(densitySlider.value);
+            
+            watercolorValue.textContent = watercolorIntensity;
+            densityValue.textContent = desired;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Verificar condiciones de activación
+            if (watercolorIntensity >= 80 && desired >= 12) {
+                const shader5Intensity = Math.min((watercolorIntensity - 80) / 20, (desired - 12) / 3);
+                console.log('Shader5 activado:', { watercolorIntensity, desired, shader5Intensity });
+                
+                // Dibujar efecto shader5
+                const t = Date.now() * 0.01;
+                let xoff = 0;
+                const stepSize = 10;
+                
+                for (let x = 0; x < canvas.width; x += stepSize) {
+                    let yoff = 0;
+                    for (let y = 0; y < canvas.height; y += stepSize) {
+                        const r = mapValue(noise(xoff, yoff, t), 0, 1, 0, 360);
+                        const g = mapValue(noise(xoff + 1000, yoff + 2000, t), 0, 1, 0, 100);
+                        const b = mapValue(noise(xoff + 3000, yoff + 5000, t), 0, 1, 0, 100);
+                        const a = mapValue(noise(xoff + 5000, yoff + 7000, t), 0, 1, 0, 100);
+                        
+                        const rgb = hsbToRgb(r / 360, g / 100, b / 100);
+                        
+                        ctx.globalAlpha = (a / 100) * shader5Intensity;
+                        ctx.fillStyle = `rgb(${Math.floor(rgb.r * 255)}, ${Math.floor(rgb.g * 255)}, ${Math.floor(rgb.b * 255)})`;
+                        
+                        ctx.beginPath();
+                        ctx.arc(x, y, stepSize / 2, 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        yoff += 0.1;
+                    }
+                    xoff += 0.1;
+                }
+            } else {
+                ctx.fillStyle = '#ddd';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#666';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Sube acuarela >= 80 y semitono >= 12', canvas.width/2, canvas.height/2);
+            }
+        }
+
+        watercolorSlider.addEventListener('input', drawShader5Effect);
+        densitySlider.addEventListener('input', drawShader5Effect);
+
+        // Dibujar inicial
+        drawShader5Effect();
+        
+        // Animar
+        setInterval(drawShader5Effect, 100);
+    </script>
+</body>
+</html>
