@@ -2309,9 +2309,14 @@ function exportCanvas() {
     const isDarkTheme = document.body.classList.contains('dark-theme');
     const backgroundText = isDarkTheme ? "fondo negro" : "fondo claro";
 
+    // Detectar dispositivo móvil para mostrar información relevante
+    const isMobileForPrompt = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    const jpgResolution = isMobileForPrompt ? "4000x4000px" : "3200x3200px";
+    const qualityNote = isMobileForPrompt ? " (calidad optimizada para móvil)" : "";
+    
     const format = prompt(
       "Selecciona el formato de exportación:\n\n" +
-      `1 - JPG (3200x3200px, ${backgroundText}, archivo más pequeño)\n` +
+      `1 - JPG (${jpgResolution}, ${backgroundText}, archivo más pequeño${qualityNote})\n` +
       "2 - PNG (alta resolución, fondo transparente, mayor calidad)\n\n" +
       "Escribe 1 o 2:",
       "1"
@@ -2339,14 +2344,25 @@ function exportCanvas() {
     const svgScreenX = tx + viewBox.x * scale;
     const svgScreenY = ty + viewBox.y * scale;
 
+    // Detectar si es dispositivo móvil para mejorar calidad
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+    
     // Crear canvas de exportación
     const exportCanvas = document.createElement('canvas');
     const exportCtx = exportCanvas.getContext('2d');
-
-    // Para JPG: tamaño fijo de 3200x3200px, para PNG: mantener calidad original
+    
+    // Configurar contexto para mejor calidad en móviles
+    if (isMobile) {
+      exportCtx.imageSmoothingEnabled = true;
+      exportCtx.imageSmoothingQuality = 'high';
+    }
+    
+    // Para JPG: tamaño optimizado según dispositivo
     if (isJPG) {
-      exportCanvas.width = 3200;
-      exportCanvas.height = 3200;
+      // En móviles, usar mayor resolución para mejor calidad
+      const baseSize = isMobile ? 4000 : 3200;
+      exportCanvas.width = baseSize;
+      exportCanvas.height = baseSize;
     } else {
       // Para PNG mantener el sistema original de alta resolución
       const exportScale = 5; // 5x resolución para máxima calidad
@@ -2375,19 +2391,23 @@ function exportCanvas() {
     }
 
     if (isJPG) {
-      // Para JPG: escalar y centrar el SVG en 3200x3200px con espacio extra arriba y abajo
+      // Para JPG: escalar y centrar el SVG con dimensiones optimizadas según dispositivo
       exportCtx.save();
 
-      // Calcular escala para que el SVG quepa con más margen vertical
-      const targetWidth = 2800; // Margen horizontal de 200px en cada lado
-      const targetHeight = 2600; // Más espacio vertical para el texto
+      // Usar dimensiones dinámicas basadas en el tamaño del canvas
+      const canvasSize = exportCanvas.width; // 4000px en móviles, 3200px en desktop
+      const marginRatio = isMobile ? 0.1 : 0.125; // Menor margen en móviles para aprovechar más espacio
+      
+      // Calcular escala para que el SVG quepa con margen optimizado
+      const targetWidth = canvasSize * (1 - marginRatio * 2); // Margen proporcional
+      const targetHeight = canvasSize * 0.65; // Más espacio vertical para el texto
       const svgScale = Math.min(targetWidth / svgScreenWidth, targetHeight / svgScreenHeight);
 
       // Centrar el SVG horizontalmente y posicionarlo más arriba
       const scaledWidth = svgScreenWidth * svgScale;
       const scaledHeight = svgScreenHeight * svgScale;
-      const offsetX = (3200 - scaledWidth) / 2;
-      const offsetY = 200; // Más espacio arriba
+      const offsetX = (canvasSize - scaledWidth) / 2;
+      const offsetY = canvasSize * 0.05; // 5% del canvas desde arriba
 
       // Calcular área expandida para capturar efectos de contorno
       const outlineWidth = parseInt(outlineInput.value, 10);
@@ -2421,25 +2441,28 @@ function exportCanvas() {
       const logoToUse = isDarkTheme ? logoWhite : logoBlack;
 
       if (logoToUse && logoToUse.complete) {
-        // Calcular tamaño del logo (proporcional al texto original)
-        const logoHeight = 120; // Altura del logo en píxeles
+        // Calcular tamaño del logo proporcional al canvas (mayor en móviles)
+        const logoHeight = isMobile ? canvasSize * 0.04 : canvasSize * 0.0375; // 4% en móviles, 3.75% en desktop
         const logoWidth = (logoToUse.width / logoToUse.height) * logoHeight;
 
         // Posicionar el logo hacia la derecha de la imagen (alineado a la derecha)
-        const logoX = 3100 - logoWidth; // 100px desde el borde derecho, alineado a la derecha
-        const logoY = offsetY + scaledHeight + 150 - logoHeight / 2; // 150px debajo del SVG, centrado verticalmente
+        const marginFromEdge = canvasSize * 0.03125; // 3.125% del canvas desde el borde
+        const logoX = canvasSize - marginFromEdge - logoWidth;
+        const logoY = offsetY + scaledHeight + (canvasSize * 0.0375) - logoHeight / 2; // Espacio proporcional debajo del SVG
 
         exportCtx.drawImage(logoToUse, logoX, logoY, logoWidth, logoHeight);
       } else {
         // Fallback: usar texto si el logo no está disponible
         const textColor = isDarkTheme ? '#ffffff' : '#333333';
         exportCtx.fillStyle = textColor;
-        exportCtx.font = 'bold 160px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif';
+        const fontSize = isMobile ? canvasSize * 0.05 : canvasSize * 0.05; // 5% del canvas
+        exportCtx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
         exportCtx.textAlign = 'right';
         exportCtx.textBaseline = 'middle';
 
-        const textX = 3100; // 100px desde el borde derecho
-        const textY = offsetY + scaledHeight + 150; // 150px debajo del SVG
+        const marginFromEdge = canvasSize * 0.03125; // 3.125% del canvas desde el borde
+        const textX = canvasSize - marginFromEdge;
+        const textY = offsetY + scaledHeight + (canvasSize * 0.0375); // Espacio proporcional debajo del SVG
         exportCtx.fillText('#bisiona', textX, textY);
       }
 
@@ -2479,7 +2502,9 @@ function exportCanvas() {
 
     if (isJPG) {
       link.download = `bisiona-export-${timestamp}.jpg`;
-      link.href = exportCanvas.toDataURL('image/jpeg', 0.98); // Calidad 98% para máxima calidad
+      // Usar máxima calidad en móviles para compensar la pantalla más pequeña
+      const jpegQuality = isMobile ? 0.99 : 0.98;
+      link.href = exportCanvas.toDataURL('image/jpeg', jpegQuality);
     } else {
       link.download = `bisiona-export-${timestamp}.png`;
       link.href = exportCanvas.toDataURL('image/png'); // Máxima calidad PNG
