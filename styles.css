@@ -491,12 +491,16 @@ body.dark-theme .black-btn {
 /* iPhone SE (375px width) - Desplazamiento hacia la izquierda y agrandado */
 @media screen and (max-width: 375px) and (min-width: 320px) and (max-height: 812px) {
   #canvas {
+    width: 100vw !important;
     height: 60vh !important;
-    margin: 0 0 30px 0;
+    margin: 0 0 30px 0 !important;
     transform: translateX(-120px) scale(1.4) !important;
     transform-origin: left center !important;
     align-self: flex-start !important;
     overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
   }
   
   /* Ajustar el contenedor del body para permitir el overflow del canvas */
@@ -508,12 +512,16 @@ body.dark-theme .black-btn {
 /* iPhone 14 Pro Max y dispositivos similares (430px width) - Desplazamiento hacia la izquierda y agrandado */
 @media screen and (min-width: 414px) and (max-width: 430px) and (min-height: 800px) {
   #canvas {
+    width: 100vw !important;
     height: 65vh !important;
-    margin: 0 0 30px 0;
+    margin: 0 0 30px 0 !important;
     transform: translateX(-200px) scale(1.5) !important;
     transform-origin: left center !important;
     align-self: flex-start !important;
     overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
   }
   
   /* Ajustar el contenedor del body para permitir el overflow del canvas */
@@ -525,12 +533,16 @@ body.dark-theme .black-btn {
 /* Samsung Galaxy S8+ (360px width) - Desplazamiento hacia la izquierda y agrandado */
 @media screen and (min-width: 360px) and (max-width: 380px) and (min-height: 700px) and (max-height: 800px) {
   #canvas {
+    width: 100vw !important;
     height: 62vh !important;
-    margin: 0 0 30px 0;
+    margin: 0 0 30px 0 !important;
     transform: translateX(-180px) scale(1.45) !important;
     transform-origin: left center !important;
     align-self: flex-start !important;
     overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
   }
   
   /* Ajustar el contenedor del body para permitir el overflow del canvas */
@@ -542,12 +554,16 @@ body.dark-theme .black-btn {
 /* iPhone XR (414px width, 896px height) - Desplazamiento específico más hacia la derecha */
 @media screen and (width: 414px) and (height: 896px) {
   #canvas {
+    width: 100vw !important;
     height: 63vh !important;
-    margin: 0 0 30px 0;
+    margin: 0 0 30px 0 !important;
     transform: translateX(-140px) scale(1.45) !important;
     transform-origin: left center !important;
     align-self: flex-start !important;
     overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
   }
   
   /* Ajustar el contenedor del body para permitir el overflow del canvas */
@@ -559,12 +575,16 @@ body.dark-theme .black-btn {
 /* iPhone 12 Pro (390px width, 844px height) - Aumento de tamaño con poco desplazamiento */
 @media screen and (width: 390px) and (height: 844px) {
   #canvas {
+    width: 100vw !important;
     height: 64vh !important;
-    margin: 0 0 30px 0;
+    margin: 0 0 30px 0 !important;
     transform: translateX(-190px) scale(1.6) !important;
     transform-origin: left center !important;
     align-self: flex-start !important;
     overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
   }
   
   /* Ajustar el contenedor del body para permitir el overflow del canvas */
@@ -576,12 +596,16 @@ body.dark-theme .black-btn {
 /* Google Pixel 7 (aproximadamente 412px width) - Desplazamiento ajustado hacia la derecha */
 @media screen and (min-width: 411px) and (max-width: 413px) and (min-height: 910px) and (max-height: 920px) {
   #canvas {
+    width: 100vw !important;
     height: 64vh !important;
-    margin: 0 0 30px 0;
+    margin: 0 0 30px 0 !important;
     transform: translateX(-120px) scale(1.55) !important;
     transform-origin: left center !important;
     align-self: flex-start !important;
     overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
   }
   
   /* Ajustar el contenedor del body para permitir el overflow del canvas */
@@ -594,12 +618,16 @@ body.dark-theme .black-btn {
 @media screen and (device-width: 412px) and (device-height: 915px), 
        screen and (width: 412px) and (height: 915px) {
   body #canvas {
+    width: 100vw !important;
     height: 66vh !important;
-    margin: 0 0 30px 0;
+    margin: 0 0 30px 0 !important;
     transform: translateX(-250px) scale(1.7) !important;
     transform-origin: left center !important;
     align-self: flex-start !important;
     overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
   }
   
   /* Ajustar el contenedor del body para permitir el overflow del canvas */
@@ -620,12 +648,16 @@ body.dark-theme .black-btn {
   }
   
   #canvas {
+    width: 100vw !important;
     height: 60vh !important;
-    margin: 0 0 30px 0;
+    margin: 0 0 30px 0 !important;
     transform: translateX(-115px) scale(1.5) !important;
     transform-origin: left center !important;
     align-self: flex-start !important;
     overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
   }
   
   /* Ajustar el contenedor del body para permitir el overflow del canvas */
@@ -637,12 +669,16 @@ body.dark-theme .black-btn {
 /* Dispositivos móviles L 425px x 608px - SVG más grande sin desplazamiento */
 @media screen and (width: 425px) and (height: 608px) {
   #canvas {
+    width: 100vw !important;
     height: 62vh !important;
-    margin: 0 0 30px 0;
+    margin: 0 0 30px 0 !important;
     transform: translateX(-60px) scale(1.6) !important;
     transform-origin: center center !important;
     align-self: center !important;
     overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
   }
   
   /* Ajustar el contenedor del body para permitir el overflow del canvas */
