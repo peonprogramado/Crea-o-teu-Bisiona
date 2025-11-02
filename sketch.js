@@ -2450,11 +2450,13 @@ function exportCanvas() {
       const targetHeight = canvasSize * 0.65; // Más espacio vertical para el texto
       const svgScale = Math.min(targetWidth / svgScreenWidth, targetHeight / svgScreenHeight);
 
-      // Centrar el SVG horizontalmente y posicionarlo más arriba
+      // Centrar el SVG tanto horizontal como verticalmente
       const scaledWidth = svgScreenWidth * svgScale;
       const scaledHeight = svgScreenHeight * svgScale;
       const offsetX = (canvasSize - scaledWidth) / 2;
-      const offsetY = canvasSize * 0.05; // 5% del canvas desde arriba
+      // Centrar verticalmente con espacio para el logo abajo
+      const availableHeight = canvasSize * 0.85; // 85% del canvas para el SVG
+      const offsetY = (availableHeight - scaledHeight) / 2 + canvasSize * 0.05; // Centrado en el 85% superior
 
       // Calcular área expandida para capturar efectos de contorno
       const outlineWidth = parseInt(outlineInput.value, 10);
@@ -2523,7 +2525,18 @@ function exportCanvas() {
 
       exportCtx.save();
       exportCtx.scale(exportScale, exportScale);
-      exportCtx.translate(margin + extraPadding, margin + extraPadding);
+      
+      // Centrar mejor el contenido en el canvas de exportación
+      const canvasWidth = exportCanvas.width / exportScale;
+      const canvasHeight = exportCanvas.height / exportScale;
+      const contentWidth = svgScreenWidth + extraPadding * 2;
+      const contentHeight = svgScreenHeight + extraPadding * 2;
+      
+      // Calcular offset para centrar
+      const centerOffsetX = (canvasWidth - contentWidth) / 2;
+      const centerOffsetY = (canvasHeight - contentHeight) / 2;
+      
+      exportCtx.translate(centerOffsetX + extraPadding, centerOffsetY + extraPadding);
 
       // Calcular área expandida para capturar contornos
       const captureX = Math.max(0, (svgScreenX - extraPadding) * dpr);
