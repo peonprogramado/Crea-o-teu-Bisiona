@@ -2449,7 +2449,7 @@ function exportCanvas() {
 
       // Calcular escala para que el SVG quepa con margen optimizado
       const targetWidth = canvasSize * (1 - marginRatio * 2); // Margen proporcional
-      const targetHeight = canvasSize * 0.65; // Más espacio vertical para el texto
+      const targetHeight = canvasSize * 0.8; // Usar más espacio vertical (80% en lugar de 65%)
       const svgScale = Math.min(targetWidth / svgScreenWidth, targetHeight / svgScreenHeight);
 
       // Centrar el SVG tanto horizontal como verticalmente
@@ -2459,9 +2459,9 @@ function exportCanvas() {
       // Centrado horizontal perfecto - igual para móvil y desktop
       const offsetX = (canvasSize - scaledWidth) / 2;
       
-      // Centrado vertical consistente - igual para móvil y desktop
-      const availableHeight = canvasSize * 0.85; // 85% del canvas para el SVG
-      const offsetY = (availableHeight - scaledHeight) / 2 + canvasSize * 0.075; // Centrado consistente
+      // Centrado vertical optimizado para reducir espacio inferior
+      const availableHeight = canvasSize * 0.9; // 90% del canvas para el SVG
+      const offsetY = (availableHeight - scaledHeight) / 2 + canvasSize * 0.05; // Centrado más arriba
 
       // Calcular área expandida para capturar efectos de contorno
       const outlineWidth = parseInt(outlineInput.value, 10);
