@@ -320,29 +320,29 @@ function drawFilmGrain(ctx, intensity, time, scale, tx, ty) {
   if (intensity <= 0) return;
 
   const dpr = window.devicePixelRatio || 1;
-  
+
   // Parámetros del grano
   const grainIntensity = intensity / 100;
   const animTime = time * 0.001;
-  
+
   // Número de partículas ultra-optimizado
   const particleCount = Math.floor(intensity * 6);
   const largeParticleCount = Math.floor(intensity * 1.5);
   const mediumParticleCount = Math.floor(intensity * 2);
   const dustParticleCount = Math.floor(intensity * 2); // Mínimo necesario
-  
+
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.scale(dpr, dpr);
   ctx.translate(tx, ty);
   ctx.scale(scale, scale);
-  
+
   // Clip al área del SVG
   ctx.clip(svgPath);
-  
+
   // Determinar colores del grano basados en la gama cromática del SVG
   let baseGrainColor, blendMode;
-  
+
   // Función para convertir hex a RGB
   function hexToRgb(hex) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -352,9 +352,9 @@ function drawFilmGrain(ctx, intensity, time, scale, tx, ty) {
       b: parseInt(result[3], 16)
     } : null;
   }
-  
+
   const svgRgb = hexToRgb(currentColor);
-  
+
   if (currentColor === '#ffffff') {
     // SVG blanco -> grano en tonos grises oscuros
     baseGrainColor = { r: 40, g: 40, b: 40 };
@@ -371,7 +371,7 @@ function drawFilmGrain(ctx, intensity, time, scale, tx, ty) {
     // Otros colores -> detectar si es azulado para mayor contraste
     const isBlueish = svgRgb.b > svgRgb.r && svgRgb.b > svgRgb.g;
     const brightness = (svgRgb.r + svgRgb.g + svgRgb.b) / 3;
-    
+
     if (isBlueish) {
       // Colores azulados -> grano cálido muy contrastante
       baseGrainColor = {
@@ -398,50 +398,51 @@ function drawFilmGrain(ctx, intensity, time, scale, tx, ty) {
       blendMode = 'screen';
     }
   }
-  
+
   ctx.globalCompositeOperation = blendMode;
-  
+
   // Efectos de película antigua ultra-simplificados
   const sinTime = Math.sin(animTime * 4);
   const cosTime = Math.cos(animTime * 3);
-  
+
   const filmFlicker = 0.8 + 0.2 * sinTime; // Parpadeo simplificado
   const frameJitter = cosTime * 0.3; // Vibración mínima
-  
+
   // Precalcular valores básicos
   const baseTime = animTime * 4;
   const baseTime2 = animTime * 3;
-  
+
   // Generar partículas pequeñas con batching ultra-optimizado
   ctx.globalCompositeOperation = blendMode;
-  
+
   // Precalcular colores base para evitar cálculos repetidos
   const baseR = baseGrainColor.r;
   const baseG = baseGrainColor.g;
   const baseB = baseGrainColor.b;
   const isColoredSVG = currentColor !== '#ffffff' && currentColor !== '#000000';
   const isBlueSVG = currentColor === '#2B43FF' || (svgRgb && svgRgb.b > svgRgb.r && svgRgb.b > svgRgb.g);
-  
+
   // Multiplicador de intensidad para SVG azul
   const blueIntensityBoost = isBlueSVG ? 1.8 : 1.0;
-  
+
   for (let i = 0; i < particleCount; i++) {
     // Posición y animación ultra-simplificada
     const iOffset = i * 0.1;
     const x = viewBox.x + Math.random() * viewBox.w + Math.sin(baseTime + iOffset) * 2;
     const y = viewBox.y + Math.random() * viewBox.h + Math.cos(baseTime2 + iOffset) * 2;
-    
+
     // Propiedades con boost para azul
-    const size = 0.5 + Math.random() * (isBlueSVG ? 1.5 : 1);
+    const baseSize = 0.5 + Math.random() * (isBlueSVG ? 1.5 : 1);
+    const size = getMobileGrainSize(baseSize); // Aplicar ajuste móvil
     const opacity = Math.random() * grainIntensity * filmFlicker * 0.8 * blueIntensityBoost;
-    
+
     // Color con mayor variación para SVG azul
     const colorVarRange = isBlueSVG ? 80 : 40;
     const colorVar = (Math.random() - 0.5) * colorVarRange;
     let r = baseR + colorVar;
     let g = baseG + colorVar;
     let b = baseB + colorVar;
-    
+
     // Variaciones adicionales para SVG azul (tonos cálidos contrastantes)
     if (isBlueSVG) {
       const warmBoost = Math.random() * 60;
@@ -449,39 +450,40 @@ function drawFilmGrain(ctx, intensity, time, scale, tx, ty) {
       g = Math.min(255, g + warmBoost * 0.7); // Algo de amarillo
       b = Math.max(50, b - warmBoost * 0.3); // Menos azul
     }
-    
+
     // Clamp rápido sin Math.max/min
     r = r < 0 ? 0 : r > 255 ? 255 : r;
     g = g < 0 ? 0 : g > 255 ? 255 : g;
     b = b < 0 ? 0 : b > 255 ? 255 : b;
-    
+
     ctx.globalAlpha = opacity;
-    ctx.fillStyle = `rgb(${r|0},${g|0},${b|0})`; // Bitwise OR para enteros rápidos
-    
+    ctx.fillStyle = `rgb(${r | 0},${g | 0},${b | 0})`; // Bitwise OR para enteros rápidos
+
     ctx.beginPath();
     ctx.arc(x, y, size, 0, Math.PI * 2);
     ctx.fill();
   }
-  
+
   // Generar partículas grandes y medianas juntas (ultra-optimizado)
   const totalLargeMed = largeParticleCount + mediumParticleCount;
   for (let i = 0; i < totalLargeMed; i++) {
     const isLarge = i < largeParticleCount;
     const timeOffset = isLarge ? animTime * 2.5 : animTime * 3;
-    
+
     const x = viewBox.x + Math.random() * viewBox.w + Math.sin(timeOffset + i) * (isLarge ? 3 : 2);
     const y = viewBox.y + Math.random() * viewBox.h + Math.cos(timeOffset + i) * (isLarge ? 3 : 2);
-    
-    const size = isLarge ? 2 + Math.random() * (isBlueSVG ? 3 : 2) : 1 + Math.random() * (isBlueSVG ? 1.5 : 1);
+
+    const baseSize = isLarge ? 2 + Math.random() * (isBlueSVG ? 3 : 2) : 1 + Math.random() * (isBlueSVG ? 1.5 : 1);
+    const size = getMobileGrainSize(baseSize); // Aplicar ajuste móvil
     const opacity = Math.random() * grainIntensity * filmFlicker * 0.7 * blueIntensityBoost;
-    
+
     // Color con boost para azul
     const colorVarRange = isBlueSVG ? 100 : 50;
     const colorVar = (Math.random() - 0.5) * colorVarRange;
     let r = baseR + colorVar;
     let g = baseG + colorVar;
     let b = baseB + colorVar;
-    
+
     // Variaciones cálidas para SVG azul
     if (isBlueSVG) {
       const warmBoost = Math.random() * (isLarge ? 80 : 60);
@@ -489,66 +491,69 @@ function drawFilmGrain(ctx, intensity, time, scale, tx, ty) {
       g = Math.min(255, g + warmBoost * 0.8);
       b = Math.max(30, b - warmBoost * 0.4);
     }
-    
+
     // Clamp rápido
     r = r < 0 ? 0 : r > 255 ? 255 : r;
     g = g < 0 ? 0 : g > 255 ? 255 : g;
     b = b < 0 ? 0 : b > 255 ? 255 : b;
-    
+
     ctx.globalAlpha = opacity;
-    ctx.fillStyle = `rgb(${r|0},${g|0},${b|0})`;
-    
+    ctx.fillStyle = `rgb(${r | 0},${g | 0},${b | 0})`;
+
     ctx.beginPath();
     ctx.arc(x, y, size, 0, Math.PI * 2);
     ctx.fill();
   }
-  
+
   // Generar partículas de polvo con boost para azul
   if (dustParticleCount > 0) {
     const dustTime = animTime * 6;
     for (let i = 0; i < dustParticleCount; i++) {
       const x = viewBox.x + Math.random() * viewBox.w + Math.sin(dustTime + i) * 2;
       const y = viewBox.y + Math.random() * viewBox.h;
-      
+
       const dustOpacity = Math.random() * grainIntensity * 0.4 * blueIntensityBoost;
-      
+
       // Color de polvo con variación para azul
       let dustR = baseR;
       let dustG = baseG;
       let dustB = baseB;
-      
+
       if (isBlueSVG) {
         const warmVar = Math.random() * 40;
         dustR = Math.min(255, dustR + warmVar);
         dustG = Math.min(255, dustG + warmVar * 0.6);
         dustB = Math.max(80, dustB - warmVar * 0.2);
       }
-      
+
       ctx.globalAlpha = dustOpacity;
-      ctx.fillStyle = `rgb(${dustR|0},${dustG|0},${dustB|0})`;
+      ctx.fillStyle = `rgb(${dustR | 0},${dustG | 0},${dustB | 0})`;
+
+      const dustBaseSize = isBlueSVG ? 0.8 : 0.5;
+      const dustSize = getMobileGrainSize(dustBaseSize); // Aplicar ajuste móvil
       
       ctx.beginPath();
-      ctx.arc(x, y, isBlueSVG ? 0.8 : 0.5, 0, Math.PI * 2);
+      ctx.arc(x, y, dustSize, 0, Math.PI * 2);
       ctx.fill();
     }
   }
-  
+
   // Rayones ultra-simplificados (solo con alta intensidad)
   if (intensity > 70 && Math.random() < 0.1) {
     const x = viewBox.x + Math.random() * viewBox.w;
     const startY = viewBox.y + Math.random() * viewBox.h * 0.3;
     const endY = startY + Math.random() * viewBox.h * 0.4;
-    
+
     ctx.globalAlpha = Math.random() * grainIntensity * 0.3;
-    ctx.strokeStyle = `rgb(${baseR|0},${baseG|0},${baseB|0})`;
+    ctx.strokeStyle = `rgb(${baseR | 0},${baseG | 0},${baseB | 0})`;
     ctx.lineWidth = 0.5;
-    
+
     ctx.beginPath();
     ctx.moveTo(x, startY);
     ctx.lineTo(x, endY);
     ctx.stroke();
   }
-  
+
   ctx.restore();
 }
 
@@ -562,15 +567,15 @@ function noise(x, y) {
   const iy = Math.floor(y);
   const fx = x - ix;
   const fy = y - iy;
-  
+
   const a = random(ix, iy);
   const b = random(ix + 1, iy);
   const c = random(ix, iy + 1);
   const d = random(ix + 1, iy + 1);
-  
+
   const u = fx * fx * (3 - 2 * fx);
   const v = fy * fy * (3 - 2 * fy);
-  
+
   return a * (1 - u) * (1 - v) + b * u * (1 - v) + c * (1 - u) * v + d * u * v;
 }
 
@@ -588,37 +593,37 @@ let shader4UpdateRate = 33; // ~30 FPS para el shader
 // Función optimizada del shader4 con cache
 function drawPureShader4(ctx, intensity, time, scale, tx, ty) {
   if (intensity <= 0) return;
-  
+
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   const dpr = window.devicePixelRatio || 1;
   ctx.scale(dpr, dpr);
   ctx.translate(tx, ty);
   ctx.scale(scale, scale);
-  
+
   // Clip al área del SVG
   ctx.clip(svgPath);
-  
+
   const currentTime = Date.now();
   const width = Math.ceil(viewBox.w);
   const height = Math.ceil(viewBox.h);
-  
+
   // Solo regenerar el cache si ha pasado suficiente tiempo o cambió el tamaño
-  if (!shader4Cache || 
-      currentTime - lastShader4Update > shader4UpdateRate ||
-      shader4Cache.width !== width || 
-      shader4Cache.height !== height) {
-    
+  if (!shader4Cache ||
+    currentTime - lastShader4Update > shader4UpdateRate ||
+    shader4Cache.width !== width ||
+    shader4Cache.height !== height) {
+
     generateShader4Cache(width, height, time * 0.001);
     lastShader4Update = currentTime;
   }
-  
+
   if (shader4Cache) {
     ctx.globalCompositeOperation = 'normal';
     ctx.globalAlpha = intensity;
     ctx.drawImage(shader4Cache, viewBox.x, viewBox.y);
   }
-  
+
   ctx.restore();
 }
 
@@ -627,17 +632,17 @@ function generateShader4Cache(width, height, u_time) {
   if (!shader4Cache) {
     shader4Cache = document.createElement('canvas');
   }
-  
+
   shader4Cache.width = width;
   shader4Cache.height = height;
   const tempCtx = shader4Cache.getContext('2d');
-  
+
   const imageData = tempCtx.createImageData(width, height);
   const data = imageData.data;
-  
+
   // Determinar colores del shader basados en el color del SVG
   let baseShaderColor, colorVariation;
-  
+
   // Función para convertir hex a RGB (reutilizada del grano)
   function hexToRgb(hex) {
     const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -647,9 +652,9 @@ function generateShader4Cache(width, height, u_time) {
       b: parseInt(result[3], 16)
     } : null;
   }
-  
+
   const svgRgb = hexToRgb(currentColor);
-  
+
   if (currentColor === '#ffffff') {
     // SVG blanco -> shader gris
     baseShaderColor = { r: 128, g: 128, b: 128 };
@@ -665,7 +670,7 @@ function generateShader4Cache(width, height, u_time) {
   } else {
     // Otros colores -> usar el mismo color del SVG con variaciones
     const brightness = (svgRgb.r + svgRgb.g + svgRgb.b) / 3;
-    
+
     if (brightness > 128) {
       // Color claro -> shader más oscuro del mismo color
       baseShaderColor = {
@@ -683,7 +688,7 @@ function generateShader4Cache(width, height, u_time) {
     }
     colorVariation = 70;
   }
-  
+
   // Precalcular valores trigonométricos comunes para optimización
   const sinTime = Math.sin(u_time);
   const cosTime = Math.cos(u_time);
@@ -691,7 +696,7 @@ function generateShader4Cache(width, height, u_time) {
   const cosTime03 = Math.cos(u_time * 0.3);
   const sinTime2 = Math.sin(u_time * 2);
   const cosTime3 = Math.cos(u_time * 3);
-  
+
   // Sampling más agresivo para mejor rendimiento (cada 3 píxeles)
   for (let y = 0; y < height; y += 3) {
     for (let x = 0; x < width; x += 3) {
@@ -700,48 +705,48 @@ function generateShader4Cache(width, height, u_time) {
       const coord_y = y / height;
       const center_x = 0.5 - coord_x;
       const center_y = 0.5 - coord_y;
-      
+
       // Optimización: precalcular valores complejos
       const base1 = center_x * 10.0 + u_time * 0.5;
       const base2 = center_y * 4.0 + u_time * 0.3;
       const base3 = center_x * 5.0 + u_time * 0.5;
       const base4 = center_y * 3.0 + u_time;
-      
+
       // Cálculo optimizado del shader original
       let col = noise(
-        center_x * 5.0 + 
-        Math.sin(base1 + Math.sin(center_y * u_time)) + 
-        Math.cos(base2 + Math.sin(center_x * 2.0 * u_time)) + 
+        center_x * 5.0 +
+        Math.sin(base1 + Math.sin(center_y * u_time)) +
+        Math.cos(base2 + Math.sin(center_x * 2.0 * u_time)) +
         u_time,
         center_y * 5.0
       ) * 0.5;
-      
+
       col += noise(
-        center_x * 10.0 + 
-        Math.cos(base3) + 
-        Math.cos(base4) + 
+        center_x * 10.0 +
+        Math.cos(base3) +
+        Math.cos(base4) +
         u_time,
         center_y * 10.0
       ) * 0.7;
-      
+
       col -= random(center_x - col, center_y - col) * 0.3;
-      
+
       // Clamp
       col = Math.max(0, Math.min(1, col));
-      
+
       // Aplicar colores adaptativos basados en el SVG
       const noiseVariation = (Math.random() - 0.5) * colorVariation;
       const timeVariation = Math.sin(u_time * 2 + x * 0.1 + y * 0.1) * (colorVariation * 0.3);
-      
+
       let r = baseShaderColor.r + noiseVariation + timeVariation;
       let g = baseShaderColor.g + noiseVariation * 0.8 + timeVariation * 0.9;
       let b = baseShaderColor.b + noiseVariation * 0.6 + timeVariation * 1.1;
-      
+
       // Modular la intensidad del color con el ruido
       r = Math.floor(Math.max(0, Math.min(255, r * col)));
       g = Math.floor(Math.max(0, Math.min(255, g * col)));
       b = Math.floor(Math.max(0, Math.min(255, b * col)));
-      
+
       // Aplicar a un bloque de 3x3 píxeles para mejor cobertura
       for (let dy = 0; dy < 3 && y + dy < height; dy++) {
         for (let dx = 0; dx < 3 && x + dx < width; dx++) {
@@ -754,7 +759,7 @@ function generateShader4Cache(width, height, u_time) {
       }
     }
   }
-  
+
   // Aplicar el ImageData al canvas cache
   tempCtx.putImageData(imageData, 0, 0);
 }
@@ -767,39 +772,39 @@ let shader5UpdateRate = 33; // ~30 FPS para el shader
 // Función optimizada del shader5 con cache (efecto generativo con círculos de ruido)
 function drawPureShader5(ctx, intensity, time, scale, tx, ty) {
   if (intensity <= 0) return;
-  
+
   // console.log('Ejecutando drawPureShader5 con intensidad:', intensity);
-  
+
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   const dpr = window.devicePixelRatio || 1;
   ctx.scale(dpr, dpr);
   ctx.translate(tx, ty);
   ctx.scale(scale, scale);
-  
+
   // Clip al área del SVG
   ctx.clip(svgPath);
-  
+
   const currentTime = Date.now();
   const width = Math.ceil(viewBox.w);
   const height = Math.ceil(viewBox.h);
-  
+
   // Solo regenerar el cache si ha pasado suficiente tiempo o cambió el tamaño
-  if (!shader5Cache || 
-      currentTime - lastShader5Update > shader5UpdateRate ||
-      shader5Cache.width !== width || 
-      shader5Cache.height !== height) {
-    
+  if (!shader5Cache ||
+    currentTime - lastShader5Update > shader5UpdateRate ||
+    shader5Cache.width !== width ||
+    shader5Cache.height !== height) {
+
     generateShader5Cache(width, height, time * 0.01);
     lastShader5Update = currentTime;
   }
-  
+
   if (shader5Cache) {
     ctx.globalCompositeOperation = 'normal';
     ctx.globalAlpha = intensity;
     ctx.drawImage(shader5Cache, viewBox.x, viewBox.y);
   }
-  
+
   ctx.restore();
 }
 
@@ -808,21 +813,21 @@ function generateShader5Cache(width, height, t) {
   if (!shader5Cache) {
     shader5Cache = document.createElement('canvas');
   }
-  
+
   shader5Cache.width = width;
   shader5Cache.height = height;
   const tempCtx = shader5Cache.getContext('2d');
-  
+
   // Limpiar el canvas
   tempCtx.clearRect(0, 0, width, height);
-  
+
   // Configurar el modo de color HSB simulado y sin stroke
   tempCtx.globalCompositeOperation = 'source-over';
-  
+
   // Recrear el efecto del shader5 original
   let xoff = 0;
   const stepSize = 10; // Tamaño de paso como en el original
-  
+
   for (let x = 0; x < width; x += stepSize) {
     let yoff = 0;
     for (let y = 0; y < height; y += stepSize) {
@@ -831,9 +836,9 @@ function generateShader5Cache(width, height, t) {
       const noiseG = mapValue(noise3D(xoff + 1000, yoff + 2000, t), 0, 1, 0, 100);
       const noiseB = mapValue(noise3D(xoff + 3000, yoff + 5000, t), 0, 1, 0, 100);
       const a = mapValue(noise3D(xoff + 5000, yoff + 7000, t), 0, 1, 0, 100);
-      
+
       let finalColor;
-      
+
       // Adaptar colores según el color del SVG
       if (currentColor === '#ffffff') {
         // SVG blanco -> colores blancos/grises claros
@@ -852,23 +857,23 @@ function generateShader5Cache(width, height, t) {
         const finalHue = (hueBase + hueVariation) / 360;
         const saturation = 0.6 + (noiseG / 100) * 0.4; // 0.6-1.0
         const brightness = 0.4 + (noiseB / 100) * 0.6; // 0.4-1.0
-        
+
         finalColor = hsbToRgb(finalHue, saturation, brightness);
       } else {
         // Otros colores -> usar el efecto original
         const rgb = hsbToRgb(noiseR / 360, noiseG / 100, noiseB / 100);
         finalColor = rgb;
       }
-      
+
       // Aplicar alpha
       tempCtx.globalAlpha = a / 100;
       tempCtx.fillStyle = `rgb(${Math.floor(finalColor.r * 255)}, ${Math.floor(finalColor.g * 255)}, ${Math.floor(finalColor.b * 255)})`;
-      
+
       // Dibujar círculo como en el original
       tempCtx.beginPath();
       tempCtx.arc(x, y, stepSize / 2, 0, Math.PI * 2);
       tempCtx.fill();
-      
+
       yoff += 0.1;
     }
     xoff += 0.1;
@@ -888,7 +893,7 @@ function hsbToRgb(h, s, b) {
   const p = b * (1 - s);
   const q = b * (1 - f * s);
   const t = b * (1 - (1 - f) * s);
-  
+
   switch (i % 6) {
     case 0: r = b, g = t, blue = p; break;
     case 1: r = q, g = b, blue = p; break;
@@ -897,7 +902,7 @@ function hsbToRgb(h, s, b) {
     case 4: r = t, g = p, blue = b; break;
     case 5: r = b, g = p, blue = q; break;
   }
-  
+
   return { r, g, b: blue };
 }
 
@@ -921,18 +926,18 @@ let shader6UseAdvancedOptimizations = true; // Optimizaciones ultra-agresivas
 // Función optimizada del shader6 con cache (efecto GLSL Bayer) - MEJORADO
 function drawPureShader6(ctx, intensity, time, scale, tx, ty) {
   if (intensity <= 0) return;
-  
+
   const currentTime = performance.now();
-  
+
   // Monitoreo de rendimiento adaptativo ULTRA-OPTIMIZADO
   if (shader6OptimizationsEnabled && shader6LastFrameTime > 0) {
     const frameTime = currentTime - shader6LastFrameTime;
     shader6StabilityCounter++;
-    
+
     // Ajustar más frecuentemente pero con cambios más pequeños
     if (shader6StabilityCounter >= 3) {
       shader6StabilityCounter = 0;
-      
+
       // Umbrales más agresivos para mejor rendimiento
       if (frameTime > 30) {
         shader6AdaptiveQuality = Math.max(0.5, shader6AdaptiveQuality - 0.08);
@@ -949,14 +954,14 @@ function drawPureShader6(ctx, intensity, time, scale, tx, ty) {
     }
   }
   shader6LastFrameTime = currentTime;
-  
+
   // Frame skipping INTELIGENTE con predicción
   const timeSinceLastUpdate = currentTime - lastShader6Update;
   const shouldSkipFrame = shader6OptimizationsEnabled && timeSinceLastUpdate < shader6UpdateRate && shader6Cache;
-  
+
   // Skip más agresivo si el rendimiento es malo
   const maxSkipFrames = shader6UseAdvancedOptimizations ? 5 : 3;
-  
+
   if (shouldSkipFrame) {
     shader6FrameSkipCounter++;
     if (shader6FrameSkipCounter < maxSkipFrames) {
@@ -968,20 +973,20 @@ function drawPureShader6(ctx, intensity, time, scale, tx, ty) {
       ctx.translate(tx, ty);
       ctx.scale(scale, scale);
       ctx.clip(svgPath);
-      
+
       if (shader6Cache) {
         ctx.globalCompositeOperation = 'source-over';
         ctx.globalAlpha = Math.min(0.9, intensity);
         ctx.drawImage(shader6Cache, viewBox.x, viewBox.y);
       }
-      
+
       ctx.restore();
       return;
     }
   }
-  
+
   shader6FrameSkipCounter = 0;
-  
+
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   const dpr = window.devicePixelRatio || 1;
@@ -1001,16 +1006,16 @@ function drawPureShader6(ctx, intensity, time, scale, tx, ty) {
 
   // Regenerar cache con lógica ULTRA-INTELIGENTE
   const intensityChanged = Math.abs(intensity - shader6LastIntensity) > 0.01;
-  const sizeChanged = !shader6Cache || 
-      Math.abs(shader6Cache.width - width) > 8 || 
-      Math.abs(shader6Cache.height - height) > 8;
+  const sizeChanged = !shader6Cache ||
+    Math.abs(shader6Cache.width - width) > 8 ||
+    Math.abs(shader6Cache.height - height) > 8;
   const timeForUpdate = timeSinceLastUpdate > shader6UpdateRate;
-  
+
   const needsUpdate = sizeChanged || (timeForUpdate && (intensityChanged || !shader6UseAdvancedOptimizations));
-  
+
   // Actualizar intensidad tracking
   shader6LastIntensity = intensity;
-      
+
   if (needsUpdate) {
     generateShader6Cache(width, height, time * 0.001, intensity, scale, qualityFactor);
     lastShader6Update = currentTime;
@@ -1019,11 +1024,11 @@ function drawPureShader6(ctx, intensity, time, scale, tx, ty) {
   if (shader6Cache) {
     ctx.globalCompositeOperation = 'source-over';
     ctx.globalAlpha = Math.min(0.9, intensity);
-    
+
     // Si la calidad es reducida, escalar el cache al tamaño completo
     if (shader6OptimizationsEnabled && qualityFactor < 1.0) {
       ctx.save();
-      ctx.scale(1/qualityFactor, 1/qualityFactor);
+      ctx.scale(1 / qualityFactor, 1 / qualityFactor);
       ctx.drawImage(shader6Cache, viewBox.x * qualityFactor, viewBox.y * qualityFactor);
       ctx.restore();
     } else {
@@ -1039,19 +1044,19 @@ function generateShader6Cache(width, height, time, intensity, scale = 1, quality
   if (!shader6Cache) {
     shader6Cache = document.createElement('canvas');
   }
-  
+
   shader6Cache.width = width;
   shader6Cache.height = height;
   const tempCtx = shader6Cache.getContext('2d');
-  
+
   // Limpiar canvas
   tempCtx.clearRect(0, 0, width, height);
-  
+
   // Parámetros del shader6 basados en el GLSL original
   const gridSize = 150 * (0.5 + intensity * 1.0); // uGridSize variable
   const bayerScale = 0.5 * (0.3 + intensity * 0.7); // uScale variable
   const timeIncrement = time * 0.025; // Velocidad aumentada 2.5x
-  
+
   // OPTIMIZACIÓN ULTRA-AGRESIVA: Sampling adaptativo inteligente
   let sampleStep;
   if (shader6UseAdvancedOptimizations) {
@@ -1060,16 +1065,16 @@ function generateShader6Cache(width, height, time, intensity, scale = 1, quality
   } else {
     sampleStep = Math.max(1, Math.floor(2.5 - (quality * 1.5))); // 1-2 píxeles conservador
   }
-  
+
   // Inicializar lookup table para Bayer si no existe
   if (!shader6LookupTable || shader6LookupTable.scale !== bayerScale) {
     generateBayerLookupTable(bayerScale);
   }
-  
+
   // Crear el efecto Bayer dithering con patrones animados
   const imageData = tempCtx.createImageData(width, height);
   const data = imageData.data;
-  
+
   // OPTIMIZACIÓN: Precalcular TODOS los valores trigonométricos
   const timeKey = Math.floor(timeIncrement * 100); // Discretizar para cache
   let trigValues = shader6TrigCache.get(timeKey);
@@ -1089,15 +1094,15 @@ function generateShader6Cache(width, height, time, intensity, scale = 1, quality
       shader6TrigCache.delete(firstKey);
     }
   }
-  
+
   // ULTRA-OPTIMIZACIÓN: Procesamiento en bloques con lookup tables
   const { timeFactor0, timeFactor1, timeFactor2 } = trigValues;
-  
+
   // Precalcular constantes para el bucle
   const invWidth = 1.0 / width;
   const invHeight = 1.0 / height;
   const alpha = Math.floor(255 * intensity);
-  
+
   // Determinar colores una sola vez
   let finalColorTrue, finalColorFalse;
   if (currentColor === '#ffffff') {
@@ -1109,32 +1114,32 @@ function generateShader6Cache(width, height, time, intensity, scale = 1, quality
   } else {
     finalColorTrue = 0; finalColorFalse = 255;
   }
-  
+
   // Procesamiento ultra-optimizado en bloques
   for (let y = 0; y < height; y += sampleStep) {
     const uv_y = 1.0 - (y * invHeight);
     const pos_x_base = uv_y * gridSize;
-    
+
     for (let x = 0; x < width; x += sampleStep) {
       const uv_x = x * invWidth;
       const pos_y = uv_x * gridSize;
       const pos_x = pos_x_base;
-      
+
       // Cálculo ultra-optimizado de 'a' (reducir llamadas a atan2)
       let a = 3.0;
       a += Math.sin(2.0 * Math.atan2((pos_x - 62.0), (pos_y - timeFactor0 + 0.0001)));
       a += Math.sin(2.0 * Math.atan2((pos_y - 71.0), (pos_y - 9.0 - timeFactor1 + 0.0001)));
       a += Math.sin(2.0 * Math.atan2((pos_x - 80.0), (pos_x - 18.0 - timeFactor2 + 0.0001)));
-      
+
       // Patrón p ultra-optimizado
       const sinA = Math.sin(a - timeIncrement);
       const p = sinA * sinA * gridSize / 3.0;
       const col = p / gridSize * 3.0;
-      
+
       // Bayer dithering con lookup table
       const m = getBayerFromLookup(x, y);
       const finalColor = col > m ? finalColorTrue : finalColorFalse;
-      
+
       // Aplicar el color ULTRA-OPTIMIZADO (sin suavizado si es crítico el rendimiento)
       if (shader6UseAdvancedOptimizations && sampleStep > 2) {
         // Modo ultra-rápido: sin suavizado
@@ -1152,9 +1157,9 @@ function generateShader6Cache(width, height, time, intensity, scale = 1, quality
         for (let dy = 0; dy < sampleStep && y + dy < height; dy++) {
           for (let dx = 0; dx < sampleStep && x + dx < width; dx++) {
             const index = ((y + dy) * width + (x + dx)) * 4;
-            const edgeFactor = (dx === 0 || dy === 0 || dx === sampleStep-1 || dy === sampleStep-1) ? 0.9 : 1.0;
+            const edgeFactor = (dx === 0 || dy === 0 || dx === sampleStep - 1 || dy === sampleStep - 1) ? 0.9 : 1.0;
             const smoothAlpha = Math.floor(alpha * edgeFactor);
-            
+
             data[index] = finalColor;
             data[index + 1] = finalColor;
             data[index + 2] = finalColor;
@@ -1164,7 +1169,7 @@ function generateShader6Cache(width, height, time, intensity, scale = 1, quality
       }
     }
   }
-  
+
   tempCtx.putImageData(imageData, 0, 0);
 }
 
@@ -1225,7 +1230,7 @@ function generateBayerLookupTable(scale) {
     size: size,
     data: new Float32Array(size * size)
   };
-  
+
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
       const index = y * size + x;
@@ -1237,7 +1242,7 @@ function generateBayerLookupTable(scale) {
 // Obtener valor Bayer desde lookup table (ultra-rápido)
 function getBayerFromLookup(x, y) {
   if (!shader6LookupTable) return 0.5;
-  
+
   const size = shader6LookupTable.size;
   const lx = Math.floor(x) % size;
   const ly = Math.floor(y) % size;
@@ -1251,12 +1256,12 @@ function bayer32(x, y) {
     const ay = Math.floor(a_y);
     return (ax / 2.0 + ay * ay * 0.75) % 1.0;
   };
-  
+
   const bayer4 = (a_x, a_y) => bayer2(a_x * 0.5, a_y * 0.5) * 0.25 + bayer2(a_x, a_y);
   const bayer8 = (a_x, a_y) => bayer4(a_x * 0.5, a_y * 0.5) * 0.25 + bayer2(a_x, a_y);
   const bayer16 = (a_x, a_y) => bayer8(a_x * 0.5, a_y * 0.5) * 0.25 + bayer2(a_x, a_y);
   const bayer32_calc = (a_x, a_y) => bayer16(a_x * 0.5, a_y * 0.5) * 0.25 + bayer2(a_x, a_y);
-  
+
   return bayer32_calc(x, y);
 }
 
@@ -1271,10 +1276,10 @@ function createMetallicColor(originalColor, metallicFactor) {
   // Gris metálico brillante fijo independiente del color original
   const baseMetallicGray = 180; // Gris metálico brillante base
   const highlightGray = 220; // Gris más brillante para highlights
-  
+
   // Crear gris metálico brillante con variación
   const metallicGray = Math.floor(baseMetallicGray + (highlightGray - baseMetallicGray) * metallicFactor * 0.5);
-  
+
   // Siempre devolver gris metálico, sin mezclar con color original
   return `rgb(${metallicGray}, ${metallicGray}, ${metallicGray})`;
 }
@@ -1283,27 +1288,27 @@ function createMetallicColor(originalColor, metallicFactor) {
 function drawTunnelEffect(ctx, svgPath, color, outlineWidth, time, metallicIntensity = 0) {
   // Determinar si aplicar efecto metálico
   const isMetallicActive = metallicIntensity > 0;
-  
+
   // Primero dibujar el contorno principal estático (sin animación)
   ctx.save();
-  
+
   if (isMetallicActive) {
     // Aplicar efecto gris metálico
     const metallicFactor = metallicIntensity / 100;
     const metallicColor = createMetallicColor(color, metallicFactor);
     ctx.strokeStyle = metallicColor;
-    
+
     // Añadir brillo metálico con gradiente
     const centerX = viewBox.x + viewBox.w * 0.5;
     const centerY = viewBox.y + viewBox.h * 0.5;
     const maxDim = Math.max(viewBox.w, viewBox.h);
-    
+
     const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, maxDim * 0.7);
     gradient.addColorStop(0, `rgba(255, 255, 255, ${0.6 * metallicFactor})`); // Blanco brillante
     gradient.addColorStop(0.3, `rgba(240, 240, 240, ${0.4 * metallicFactor})`); // Gris muy claro
     gradient.addColorStop(0.7, `rgba(200, 200, 200, ${0.3 * metallicFactor})`); // Gris medio
     gradient.addColorStop(1, `rgba(160, 160, 160, ${0.2 * metallicFactor})`); // Gris más oscuro
-    
+
     // Aplicar múltiples sombras para más brillo
     ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
     ctx.shadowBlur = outlineWidth * 3;
@@ -1312,13 +1317,13 @@ function drawTunnelEffect(ctx, svgPath, color, outlineWidth, time, metallicInten
   } else {
     ctx.strokeStyle = color;
   }
-  
+
   ctx.lineWidth = outlineWidth;
   ctx.lineJoin = 'round';
   ctx.lineCap = 'round';
   ctx.globalAlpha = 1.0;
   ctx.stroke(svgPath);
-  
+
   // Añadir resplandor extra si es metálico
   if (isMetallicActive) {
     const metallicFactor = metallicIntensity / 100;
@@ -1331,54 +1336,54 @@ function drawTunnelEffect(ctx, svgPath, color, outlineWidth, time, metallicInten
     ctx.stroke(svgPath);
     ctx.restore();
   }
-  
+
   ctx.restore();
-  
+
   // Parámetros del túnel para capas internas solamente
   const numLayers = 12; // Número de capas internas (sin contar la principal)
   const maxScale = 0.9; // Escala máxima para capas internas (menor que el original)
   const minScale = 0.03; // Escala mínima (centro del túnel)
   const animationSpeed = 0.0003; // Velocidad muy lenta
   const depthOffset = time * animationSpeed; // Desplazamiento temporal para animación
-  
+
   // Configurar el recorte al SVG original para que el túnel no se salga
   ctx.save();
   ctx.clip(svgPath);
-  
+
   // Dibujar solo las capas internas del túnel (sin la capa principal)
   for (let i = 0; i < numLayers; i++) {
     const layerProgress = i / (numLayers - 1); // 0 a 1
-    
+
     // Calcular escala con animación más smooth
     const rawProgress = (layerProgress + depthOffset) % 1.0;
     const smoothProgress = smoothStep(rawProgress);
     const scale = maxScale - (maxScale - minScale) * smoothProgress;
-    
+
     // Saltar capas muy pequeñas para optimización
     if (scale < 0.02) continue;
-    
+
     // Calcular opacidad basada en la profundidad
     const opacity = Math.pow(1 - smoothProgress, 0.8) * 0.7;
-    
+
     // Calcular grosor del contorno basado en la escala
     const layerOutlineWidth = outlineWidth * (0.2 + scale * 0.6);
-    
+
     ctx.save();
-    
+
     // Centrar y escalar
     const centerX = viewBox.x + viewBox.w * 0.5;
     const centerY = viewBox.y + viewBox.h * 0.5;
-    
+
     ctx.translate(centerX, centerY);
     ctx.scale(scale, scale);
     ctx.translate(-centerX, -centerY);
-    
+
     // Configurar estilo del contorno con efecto metálico si está activo
     if (isMetallicActive) {
       const metallicFactor = metallicIntensity / 100;
       const layerMetallicColor = createMetallicColor(color, metallicFactor); // Misma intensidad que el principal
       ctx.strokeStyle = layerMetallicColor;
-      
+
       // Añadir brillo más intenso a las capas internas
       ctx.shadowColor = `rgba(255, 255, 255, ${0.4 * metallicFactor * opacity})`;
       ctx.shadowBlur = layerOutlineWidth * 1.5;
@@ -1387,29 +1392,29 @@ function drawTunnelEffect(ctx, svgPath, color, outlineWidth, time, metallicInten
     } else {
       ctx.strokeStyle = color;
     }
-    
+
     ctx.globalAlpha = opacity;
     ctx.lineWidth = layerOutlineWidth;
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    
+
     // Dibujar el contorno escalado
     ctx.stroke(svgPath);
-    
+
     ctx.restore();
   }
-  
+
   // Añadir efecto de resplandor en el centro
   if (numLayers > 6) {
     ctx.save();
-    
+
     const centerX = viewBox.x + viewBox.w * 0.5;
     const centerY = viewBox.y + viewBox.h * 0.5;
     const glowRadius = Math.min(viewBox.w, viewBox.h) * 0.08; // Resplandor fijo sin parpadeo
-    
+
     // Crear gradiente radial para el resplandor
     const gradient = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, glowRadius);
-    
+
     // Convertir color a rgba para el resplandor
     let glowColor;
     if (color.startsWith('#')) {
@@ -1423,20 +1428,20 @@ function drawTunnelEffect(ctx, svgPath, color, outlineWidth, time, metallicInten
     } else {
       glowColor = 'rgba(255, 255, 255'; // Fallback
     }
-    
+
     gradient.addColorStop(0, `${glowColor}, 0.4)`);
     gradient.addColorStop(0.5, `${glowColor}, 0.2)`);
     gradient.addColorStop(1, `${glowColor}, 0)`);
-    
+
     ctx.fillStyle = gradient;
     ctx.globalAlpha = 0.5;
     ctx.beginPath();
     ctx.arc(centerX, centerY, glowRadius, 0, Math.PI * 2);
     ctx.fill();
-    
+
     ctx.restore();
   }
-  
+
   ctx.restore();
 }
 
@@ -1656,7 +1661,8 @@ function drawInternalLines(ctx, intensity, scale, tx, ty, time = 0, outlineWidth
   // Configurar estilo de línea con animación
   const baseOpacity = 0.3 + (intensity / 100) * 0.4;
   const animatedOpacity = baseOpacity + (hoverEffect * 0.3);
-  const baseLineWidth = 0.5 + (intensity / 100) * 2;
+  // Hacer las líneas más gruesas tanto en desktop como en móvil
+  const baseLineWidth = 1.8 + (intensity / 100) * 4.0; // Aumentado a 1.8 base y 4.0 multiplicador para líneas bien gruesas
   const animatedLineWidth = baseLineWidth + (hoverEffect * 1.5);
 
   // Color de líneas según el color del SVG y si el contorno está activo
@@ -1797,7 +1803,18 @@ function draw() {
   const linesIntensity = parseInt(linesInput.value, 10);
   const outlineWidth = parseInt(outlineInput.value, 10);
   const watercolorIntensity = parseInt(watercolorInput.value, 10);
-  const filmgrainIntensity = filmgrainInput ? parseInt(filmgrainInput.value, 10) : 0;
+  const baseFilmgrainIntensity = filmgrainInput ? parseInt(filmgrainInput.value, 10) : 0;
+  const filmgrainIntensity = getMobileFilmgrainIntensity(baseFilmgrainIntensity); // Aplicar ajuste móvil
+  
+  // Debug para ruido móvil
+  if (isMobileDevice() && baseFilmgrainIntensity > 0 && filmgrainIntensity !== baseFilmgrainIntensity) {
+    console.log('📱 Ruido móvil aplicado:', {
+      valorSlider: baseFilmgrainIntensity,
+      intensidadOriginal: baseFilmgrainIntensity,
+      intensidadMóvil: filmgrainIntensity,
+      incremento: `+${(filmgrainIntensity - baseFilmgrainIntensity).toFixed(0)} puntos`
+    });
+  }
 
   // Actualizar tiempo de animación
   animationTime = performance.now();
@@ -1805,9 +1822,9 @@ function draw() {
   // Debug: mostrar solo cuando se activa shader5 por primera vez
   const shader5ShouldActivate = watercolorIntensity > 0 && desired > 1;
   if (shader5ShouldActivate && !window.shader5DebugShown) {
-    console.log('🎨 Shader5 activado - Condiciones cumplidas:', { 
-      watercolorIntensity, 
-      desired, 
+    console.log('🎨 Shader5 activado - Condiciones cumplidas:', {
+      watercolorIntensity,
+      desired,
       modo: desired <= 1 ? 'relleno' : 'trama'
     });
     window.shader5DebugShown = true;
@@ -1818,9 +1835,9 @@ function draw() {
   // Debug: mostrar solo cuando se activa shader6 por primera vez
   const shader6ShouldActivate = linesIntensity > 0 && desired > 1;
   if (shader6ShouldActivate && !window.shader6DebugShown) {
-    console.log('🎨 Shader6 activado - Condiciones cumplidas:', { 
-      linesIntensity, 
-      desired, 
+    console.log('🎨 Shader6 activado - Condiciones cumplidas:', {
+      linesIntensity,
+      desired,
       modo: desired <= 1 ? 'relleno' : 'trama'
     });
     window.shader6DebugShown = true;
@@ -1898,7 +1915,7 @@ function draw() {
 
     // Solo aplicar efectos normales si shader6 no está activo
     const shader6WillActivate = linesIntensity > 0 && desired > 1;
-    
+
     if (!shader6WillActivate) {
       // Aplicar efecto watercolor si está activado (solo en modo relleno)
       if (watercolorIntensity > 0 && outlineWidth === 0) {
@@ -1947,7 +1964,7 @@ function draw() {
   // Pero no dibujar puntos si algún shader está activo
   const shader6Active = linesIntensity > 0 && desired > 1;
   const shader5Active = watercolorIntensity > 0 && desired > 1;
-  
+
   if (shader6Active) {
     // Si shader6 está activo, solo dibujar el fondo y aplicar el shader
     ctx.save();
@@ -1955,13 +1972,13 @@ function draw() {
     ctx.scale(dpr, dpr);
     ctx.translate(tx, ty);
     ctx.scale(scale, scale);
-    
+
     // Dibujar fondo sólido
     ctx.fillStyle = currentColor;
     ctx.fill(svgPath);
-    
+
     ctx.restore();
-    
+
     // Aplicar shader6
     const linesFactor = linesIntensity / 100; // Normalizar de 0-100 a 0-1
     const densityFactor = (desired - 1) / 14; // Normalizar de 1-15 a 0-1
@@ -1975,13 +1992,13 @@ function draw() {
     ctx.scale(dpr, dpr);
     ctx.translate(tx, ty);
     ctx.scale(scale, scale);
-    
+
     // Dibujar fondo sólido
     ctx.fillStyle = currentColor;
     ctx.fill(svgPath);
-    
+
     ctx.restore();
-    
+
     // Aplicar shader5
     const watercolorFactor = watercolorIntensity / 100;
     const densityFactor = (desired - 1) / 14; // Normalizar de 1-15 a 0-1
@@ -1990,12 +2007,42 @@ function draw() {
     return;
   }
 
-  // Calcular espaciado basado en densidad con más separación
+  // Calcular radio primero
+  // Ajustar fórmula para que el valor máximo (15) tenga el tamaño del valor medio anterior
+  const baseDotRadius = Math.max(1, 14 - desired * 0.75);
+  const dotRadius = getMobileDotRadius(baseDotRadius, desired); // Aplicar ajuste móvil
+  
+  // Calcular espaciado basado en el tamaño real de los círculos para evitar superposiciones
   const svgSize = Math.max(viewBox.w, viewBox.h);
   const screenSize = Math.min(cw, ch);
-  const baseSpacing = (screenSize / 12) * (scale * svgSize / screenSize); // Ajustado a /12 para mejor definición de contornos
-  const spacing = baseSpacing / Math.sqrt(desired);
-  const dotRadius = Math.max(1, 14 - desired * 1.5);
+  const baseSpacing = (screenSize / 12) * (scale * svgSize / screenSize);
+  
+  // NUEVO: Espaciado inteligente que considera el tamaño de los círculos
+  // El espaciado mínimo debe ser al menos el diámetro + un pequeño margen
+  const minSpacing = (dotRadius * 2) + (dotRadius * 0.3); // Diámetro + 30% de margen
+  const densitySpacing = baseSpacing / Math.sqrt(desired);
+  const spacing = Math.max(minSpacing, densitySpacing); // Usar el mayor de los dos
+  
+  // Debug para espaciado anti-superposición
+  if (spacing === minSpacing && minSpacing > densitySpacing) {
+    console.log('🔧 Espaciado anti-superposición aplicado:', {
+      valorSlider: desired,
+      radioPunto: dotRadius.toFixed(2),
+      espaciadoOriginal: densitySpacing.toFixed(2),
+      espaciadoAjustado: spacing.toFixed(2),
+      margenSeguridad: '30%'
+    });
+  }
+  
+  // Debug para móvil
+  if (isMobileDevice() && desired > 1 && dotRadius !== baseDotRadius) {
+    console.log('📱 Semitono móvil aplicado:', {
+      valorSlider: desired,
+      radioOriginal: baseDotRadius.toFixed(2),
+      radioMóvil: dotRadius.toFixed(2),
+      reducción: `${((1 - dotRadius/baseDotRadius) * 100).toFixed(0)}%`
+    });
+  }
 
   ctx.save();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -2313,7 +2360,7 @@ function exportCanvas() {
     const isMobileForPrompt = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
     const jpgResolution = isMobileForPrompt ? "4000x4000px" : "3200x3200px";
     const qualityNote = isMobileForPrompt ? " (calidad optimizada para móvil)" : "";
-    
+
     const format = prompt(
       "Selecciona el formato de exportación:\n\n" +
       `1 - JPG (${jpgResolution}, ${backgroundText}, archivo más pequeño${qualityNote})\n` +
@@ -2346,17 +2393,17 @@ function exportCanvas() {
 
     // Detectar si es dispositivo móvil para mejorar calidad
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
-    
+
     // Crear canvas de exportación
     const exportCanvas = document.createElement('canvas');
     const exportCtx = exportCanvas.getContext('2d');
-    
+
     // Configurar contexto para mejor calidad en móviles
     if (isMobile) {
       exportCtx.imageSmoothingEnabled = true;
       exportCtx.imageSmoothingQuality = 'high';
     }
-    
+
     // Para JPG: tamaño optimizado según dispositivo
     if (isJPG) {
       // En móviles, usar mayor resolución para mejor calidad
@@ -2371,7 +2418,7 @@ function exportCanvas() {
       // Añadir padding extra para contornos y efectos
       const outlineWidth = parseInt(outlineInput.value, 10);
       const metallicIntensity = parseInt(metallicInput.value, 10);
-      
+
       let extraPadding = Math.max(outlineWidth * 4, 30); // Padding base para túnel
       if (metallicIntensity > 0 && outlineWidth > 0) {
         extraPadding += outlineWidth * 6; // Espacio extra para resplandor metálico
@@ -2397,7 +2444,7 @@ function exportCanvas() {
       // Usar dimensiones dinámicas basadas en el tamaño del canvas
       const canvasSize = exportCanvas.width; // 4000px en móviles, 3200px en desktop
       const marginRatio = isMobile ? 0.1 : 0.125; // Menor margen en móviles para aprovechar más espacio
-      
+
       // Calcular escala para que el SVG quepa con margen optimizado
       const targetWidth = canvasSize * (1 - marginRatio * 2); // Margen proporcional
       const targetHeight = canvasSize * 0.65; // Más espacio vertical para el texto
@@ -2413,14 +2460,14 @@ function exportCanvas() {
       const outlineWidth = parseInt(outlineInput.value, 10);
       const metallicIntensity = parseInt(metallicInput.value, 10);
       let effectPadding = 0;
-      
+
       if (outlineWidth > 0) {
         effectPadding = outlineWidth * 4; // Padding base para túnel
         if (metallicIntensity > 0) {
           effectPadding += outlineWidth * 6; // Espacio extra para resplandor metálico
         }
       }
-      
+
       // Área de captura expandida
       const sourceX = Math.max(0, (svgScreenX - effectPadding) * dpr);
       const sourceY = Math.max(0, (svgScreenY - effectPadding) * dpr);
@@ -2996,14 +3043,101 @@ function initButtons() {
   }
 }
 
+// ========================================
+// DETECCIÓN AUTOMÁTICA DE MÓVIL Y AJUSTES
+// ========================================
+
+// Función para detectar dispositivos móviles
+function isMobileDevice() {
+  return window.innerWidth <= 768 || 
+         /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
+         ('ontouchstart' in window) || 
+         (navigator.maxTouchPoints > 0);
+}
+
+// Función para ajustar el radio de los círculos en móvil
+function getMobileDotRadius(dotRadius, desired) {
+  if (!isMobileDevice() || desired <= 1) {
+    return dotRadius; // Desktop o modo sólido: sin cambios
+  }
+  
+  // En móvil, hacer círculos más pequeños para evitar superposiciones
+  const mobileReduction = 0.6; // Reducir a 60% del tamaño original
+  return dotRadius * mobileReduction;
+}
+
+// Función para ajustar la intensidad del ruido en móvil
+function getMobileFilmgrainIntensity(originalIntensity) {
+  if (!isMobileDevice() || originalIntensity === 0) {
+    return originalIntensity; // Desktop o ruido desactivado: sin cambios
+  }
+  
+  // En móvil, hacer el ruido más intenso
+  const mobileBoost = 25; // Añadir 25 puntos base
+  const mobileMultiplier = 1.4; // Multiplicar por 1.4
+  
+  const boostedIntensity = originalIntensity + mobileBoost;
+  const finalIntensity = boostedIntensity * mobileMultiplier;
+  
+  return Math.min(100, finalIntensity); // Limitar al máximo del slider
+}
+
+// Función para ajustar el tamaño de las partículas de ruido en móvil
+function getMobileGrainSize(baseSize) {
+  if (!isMobileDevice()) {
+    return baseSize; // Desktop: tamaño original
+  }
+  
+  // En móvil, hacer las partículas más grandes para mejor visibilidad
+  const mobileSizeMultiplier = 1.8; // Aumentar 80% el tamaño
+  return baseSize * mobileSizeMultiplier;
+}
+
+// Función para mostrar indicador de modo móvil
+function initMobileIndicator() {
+  if (isMobileDevice()) {
+    console.log('📱 MODO MÓVIL DETECTADO - Efectos optimizados:', {
+      semitono: 'Valor 0 = sólido, valores 1+ = círculos más pequeños (40% reducción)',
+      ruido: 'Intensidad aumentada (+25 base, x1.4 multiplicador) + partículas 80% más grandes',
+      antiSuperposicion: 'Espaciado inteligente activado'
+    });
+    
+    // Mostrar tooltip temporal
+    const tooltip = document.createElement('div');
+    tooltip.style.cssText = `
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: rgba(43, 67, 255, 0.9);
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      z-index: 1000;
+      pointer-events: none;
+    `;
+    tooltip.textContent = '📱 Móvil: Efectos optimizados';
+    document.body.appendChild(tooltip);
+    
+    // Remover tooltip después de 3 segundos
+    setTimeout(() => {
+      if (tooltip.parentNode) {
+        tooltip.parentNode.removeChild(tooltip);
+      }
+    }, 3000);
+  }
+}
+
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', () => {
     init();
     initSliderProgress();
     initButtons();
+    initMobileIndicator(); // Inicializar indicador móvil
   });
 } else {
   init();
   initSliderProgress();
   initButtons();
+  initMobileIndicator(); // Inicializar indicador móvil
 }

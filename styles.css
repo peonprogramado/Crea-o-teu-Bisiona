@@ -416,10 +416,16 @@ body.dark-theme .black-btn {
     font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
     font-weight: 500;
     min-width: auto;
-    font-size: 1rem;
+    font-size: 1.1rem; /* Aumentado de 1rem a 1.1rem para mejor legibilidad */
     margin-bottom: 0.5rem;
     text-align: center;
     width: 100%;
+  }
+  
+  /* Mejorar tamaño de fuente de los labels de sliders en móvil */
+  .slider-label {
+    font-size: 14px !important; /* Aumentado de 12px a 14px */
+    font-weight: 600; /* Más peso para mejor legibilidad */
   }
   
   .slider-container {
@@ -454,7 +460,8 @@ body.dark-theme .black-btn {
   .bottom-btn {
     width: 300px;
     height: 70px;
-    font-size: 1rem;
+    font-size: 1.1rem; /* Aumentado de 1rem a 1.1rem para mejor legibilidad */
+    font-weight: 500; /* Añadir peso para mejor legibilidad */
   }
 }
 
@@ -493,9 +500,15 @@ body.dark-theme .black-btn {
   .control-group label {
     font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
     font-weight: 500;
-    font-size: 0.9rem;
+    font-size: 1rem; /* Aumentado de 0.9rem a 1rem para mejor legibilidad en pantallas pequeñas */
     text-align: center;
     width: 100%;
+  }
+  
+  /* Mejorar también los labels de sliders en pantallas muy pequeñas */
+  .slider-label {
+    font-size: 13px !important; /* Mantener legible pero no demasiado grande */
+    font-weight: 600;
   }
   
   .round-btn {
@@ -506,7 +519,8 @@ body.dark-theme .black-btn {
   .bottom-btn {
     width: 300px;
     height: 70px;
-    font-size: 0.9rem;
+    font-size: 1rem; /* Aumentado de 0.9rem a 1rem para mejor legibilidad en pantallas pequeñas */
+    font-weight: 500; /* Añadir peso para mejor legibilidad */
   }
   
   #canvas {
