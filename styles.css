@@ -717,3 +717,58 @@ body.dark-theme .black-btn {
     overflow-x: hidden !important;
   }
 }
+
+/* ========================================= */
+/* DIAGNÓSTICO Y SOLUCIÓN FINAL */
+/* PROBLEMA: Las media queries específicas sobrescriben la regla de touch */
+/* SOLUCIÓN: Regla con MÁXIMA PRIORIDAD al final del archivo */
+/* ========================================= */
+
+/* SOLUCIÓN 1: Detectar dispositivos móviles REALES (no DevTools) */
+@media screen and (max-width: 768px) and (pointer: coarse) and (hover: none) {
+  #canvas {
+    /* DIAGNÓSTICO: Eliminar todos los transforms problemáticos */
+    transform: none !important;
+    width: 100vw !important;
+    height: 60vh !important;
+    margin: 0 auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    position: relative !important;
+    order: 1 !important;
+    display: block !important;
+    align-self: center !important;
+    /* Centrado perfecto sin desplazamientos */
+    transform-origin: center center !important;
+  }
+  
+  /* Evitar overflow horizontal que causa desplazamiento */
+  body {
+    overflow-x: hidden !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+}
+
+/* SOLUCIÓN 2: Safari iOS específico (mayor especificidad) */
+@supports (-webkit-touch-callout: none) {
+  @media screen and (max-width: 768px) {
+    #canvas {
+      /* Safari iOS: Sin transforms, centrado natural */
+      transform: none !important;
+      -webkit-transform: none !important;
+      width: 100vw !important;
+      height: 65vh !important;
+      margin: 0 !important;
+      position: relative !important;
+      left: 0 !important;
+      right: 0 !important;
+      top: 0 !important;
+    }
+    
+    body {
+      -webkit-text-size-adjust: 100% !important;
+      overflow-x: hidden !important;
+    }
+  }
+}
