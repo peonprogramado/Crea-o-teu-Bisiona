@@ -2443,7 +2443,9 @@ function exportCanvas() {
 
       // Usar dimensiones dinámicas basadas en el tamaño del canvas
       const canvasSize = exportCanvas.width; // 4000px en móviles, 3200px en desktop
-      const marginRatio = isMobile ? 0.1 : 0.125; // Menor margen en móviles para aprovechar más espacio
+      
+      // Usar el mismo ratio de margen para móvil y desktop para consistencia
+      const marginRatio = 0.125; // Margen consistente para ambos dispositivos
 
       // Calcular escala para que el SVG quepa con margen optimizado
       const targetWidth = canvasSize * (1 - marginRatio * 2); // Margen proporcional
@@ -2453,10 +2455,13 @@ function exportCanvas() {
       // Centrar el SVG tanto horizontal como verticalmente
       const scaledWidth = svgScreenWidth * svgScale;
       const scaledHeight = svgScreenHeight * svgScale;
+      
+      // Centrado horizontal perfecto - igual para móvil y desktop
       const offsetX = (canvasSize - scaledWidth) / 2;
-      // Centrar verticalmente con espacio para el logo abajo
+      
+      // Centrado vertical consistente - igual para móvil y desktop
       const availableHeight = canvasSize * 0.85; // 85% del canvas para el SVG
-      const offsetY = (availableHeight - scaledHeight) / 2 + canvasSize * 0.05; // Centrado en el 85% superior
+      const offsetY = (availableHeight - scaledHeight) / 2 + canvasSize * 0.075; // Centrado consistente
 
       // Calcular área expandida para capturar efectos de contorno
       const outlineWidth = parseInt(outlineInput.value, 10);
@@ -2490,21 +2495,24 @@ function exportCanvas() {
       const logoToUse = isDarkTheme ? logoWhite : logoBlack;
 
       if (logoToUse && logoToUse.complete) {
-        // Calcular tamaño del logo proporcional al canvas (mayor en móviles)
-        const logoHeight = isMobile ? canvasSize * 0.04 : canvasSize * 0.0375; // 4% en móviles, 3.75% en desktop
+        // Calcular tamaño del logo proporcional al canvas - consistente para móvil y desktop
+        const logoHeight = canvasSize * 0.0375; // Tamaño consistente: 3.75% del canvas
         const logoWidth = (logoToUse.width / logoToUse.height) * logoHeight;
 
         // Posicionar el logo hacia la derecha de la imagen (alineado a la derecha)
         const marginFromEdge = canvasSize * 0.03125; // 3.125% del canvas desde el borde
         const logoX = canvasSize - marginFromEdge - logoWidth;
-        const logoY = offsetY + scaledHeight + (canvasSize * 0.0375) - logoHeight / 2; // Espacio proporcional debajo del SVG
+        
+        // Posicionamiento vertical del logo - consistente para móvil y desktop
+        const logoSpacing = canvasSize * 0.0375; // Espacio consistente
+        const logoY = offsetY + scaledHeight + logoSpacing - logoHeight / 2;
 
         exportCtx.drawImage(logoToUse, logoX, logoY, logoWidth, logoHeight);
       } else {
         // Fallback: usar texto si el logo no está disponible
         const textColor = isDarkTheme ? '#ffffff' : '#333333';
         exportCtx.fillStyle = textColor;
-        const fontSize = isMobile ? canvasSize * 0.05 : canvasSize * 0.05; // 5% del canvas
+        const fontSize = canvasSize * 0.05; // 5% del canvas - consistente
         exportCtx.font = `bold ${fontSize}px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif`;
         exportCtx.textAlign = 'right';
         exportCtx.textBaseline = 'middle';
