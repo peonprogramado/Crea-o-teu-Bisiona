@@ -328,6 +328,9 @@ body.dark-theme .black-btn {
   html, body {
     overflow-y: auto;
     overflow-x: hidden;
+    /* Forzar viewport real en móvil */
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
   }
   
   /* Crear layout en columna para móvil */
@@ -336,6 +339,9 @@ body.dark-theme .black-btn {
     flex-direction: column;
     align-items: center;
     padding-top: 4rem;
+    /* Asegurar que el body ocupe todo el ancho */
+    width: 100vw;
+    max-width: 100vw;
   }
   
   /* Ajustar logos para móvil */
@@ -353,18 +359,22 @@ body.dark-theme .black-btn {
     max-height: 2rem;
   }
   
-  /* Canvas primero en el orden visual */
+  /* Canvas primero en el orden visual - AJUSTADO PARA MÓVIL REAL */
   #canvas {
     order: 1;
     position: relative;
     width: 100vw !important;
     height: 60vh !important;
     margin: 0 0 30px 0;
-    transform: translateX(-40px) scale(1.1);
+    /* Ajuste más conservador para móviles reales */
+    transform: translateX(-20px) scale(1.05);
     transform-origin: center center;
     object-fit: contain;
     display: block;
     align-self: center;
+    /* Forzar posicionamiento correcto */
+    left: 0;
+    right: 0;
   }
   
   /* Reposicionar botones redondos después del canvas y antes de los controles */
@@ -445,6 +455,27 @@ body.dark-theme .black-btn {
     width: 300px;
     height: 70px;
     font-size: 1rem;
+  }
+}
+
+/* Media Query para DISPOSITIVOS MÓVILES REALES - Detecta touch */
+@media (max-width: 768px) and (pointer: coarse) and (hover: none) {
+  #canvas {
+    /* Ajuste específico para móviles reales con touch */
+    transform: translateX(-10px) scale(1.02) !important;
+    width: 100vw !important;
+    height: 55vh !important;
+    margin: 0 auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    position: relative !important;
+  }
+  
+  /* Asegurar que el contenedor no cause overflow */
+  body {
+    overflow-x: hidden !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
   }
 }
 
