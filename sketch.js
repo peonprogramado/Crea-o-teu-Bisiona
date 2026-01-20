@@ -2599,6 +2599,98 @@ let recordedChunks = [];
 
 async function startCanvasRecording() {
   try {
+    // Detectar si el navegador soporta captureStream (no disponible en iOS/Safari)
+    const testCanvas = document.createElement('canvas');
+    const supportsCaptureStream = typeof testCanvas.captureStream === 'function';
+
+    // Si no soporta captureStream, usar grabación de GIF animado
+    if (!supportsCaptureStream) {
+      console.log('captureStream no soportado, iniciando grabación de GIF animado');
+
+      // Crear canvas de grabación
+      const recordingCanvas = document.createElement('canvas');
+      recordingCanvas.width = 540; // Reducir resolución para GIF más ligero
+      recordingCanvas.height = 675;
+      const recordingCtx = recordingCanvas.getContext('2d');
+
+      recordingCtx.imageSmoothingEnabled = true;
+      recordingCtx.imageSmoothingQuality = 'high';
+
+      // Cargar el logo
+      const bisionaLogo = new Image();
+      bisionaLogo.src = './assets/bisiona.png';
+
+      await new Promise((resolve) => {
+        if (bisionaLogo.complete) {
+          resolve();
+        } else {
+          bisionaLogo.onload = resolve;
+          bisionaLogo.onerror = resolve;
+        }
+      });
+
+      // Configurar captura de frames
+      recordedFrames = [];
+      isRecording = true;
+
+      // Función para capturar un frame
+      function captureFrame() {
+        const isDarkTheme = document.body.classList.contains('dark-theme');
+        recordingCtx.fillStyle = isDarkTheme ? '#000000' : '#fafafa';
+        recordingCtx.fillRect(0, 0, 540, 675);
+
+        const { scale: svgScale, tx, ty } = getTransformToFit();
+        const dpr = window.devicePixelRatio || 1;
+        const extraPadding = 100 * dpr;
+
+        const svgScreenX = Math.max(0, (tx + viewBox.x * svgScale) * dpr - extraPadding);
+        const svgScreenY = Math.max(0, (ty + viewBox.y * svgScale) * dpr - extraPadding);
+        const svgScreenWidth = Math.min(canvas.width - svgScreenX, viewBox.w * svgScale * dpr + extraPadding * 2);
+        const svgScreenHeight = Math.min(canvas.height - svgScreenY, viewBox.h * svgScale * dpr + extraPadding * 2);
+
+        const targetWidth = 540 * 0.70;
+        const targetHeight = 675 * 0.70;
+        const recordingScale = Math.min(targetWidth / svgScreenWidth, targetHeight / svgScreenHeight);
+
+        const finalWidth = svgScreenWidth * recordingScale;
+        const finalHeight = svgScreenHeight * recordingScale;
+        const offsetX = (540 - finalWidth) / 2;
+        const offsetY = (675 - finalHeight) / 2;
+
+        recordingCtx.drawImage(
+          canvas,
+          svgScreenX, svgScreenY, svgScreenWidth, svgScreenHeight,
+          offsetX, offsetY, finalWidth, finalHeight
+        );
+
+        if (bisionaLogo.complete && bisionaLogo.naturalWidth > 0) {
+          const logoHeight = 30;
+          const logoWidth = (bisionaLogo.width / bisionaLogo.height) * logoHeight;
+          const logoMargin = 15;
+          const logoX = 540 - logoWidth - logoMargin;
+          const logoY = 675 - logoHeight - logoMargin;
+          recordingCtx.drawImage(bisionaLogo, logoX, logoY, logoWidth, logoHeight);
+        }
+
+        // Guardar frame como ImageData
+        const imageData = recordingCtx.getImageData(0, 0, 540, 675);
+        recordedFrames.push(imageData);
+      }
+
+      // Capturar frames a 10 FPS durante la grabación
+      const frameInterval = setInterval(() => {
+        if (isRecording && recordedFrames.length < 150) { // Máximo 15 segundos a 10 FPS
+          captureFrame();
+        }
+      }, 100); // 100ms = 10 FPS
+
+      // Guardar el intervalo para poder detenerlo
+      window.gifFrameInterval = frameInterval;
+
+      return true;
+    }
+
+    // Código original para navegadores que soportan captureStream
     // Crear canvas de grabación con dimensiones 1080x1350 (formato Instagram)
     const recordingCanvas = document.createElement('canvas');
     recordingCanvas.width = 1080;
@@ -2809,7 +2901,21 @@ async function startCanvasRecording() {
 }
 
 function stopCanvasRecording() {
-  if (!isRecording || !mediaRecorder) return false;
+  if (!isRecording) return false;
+
+  // Si es grabación de GIF (móvil sin captureStream)
+  if (window.gifFrameInterval) {
+    clearInterval(window.gifFrameInterval);
+    window.gifFrameInterval = null;
+    isRecording = false;
+
+    // Crear GIF animado con los frames capturados
+    createAnimatedGIF();
+    return true;
+  }
+
+  // Si es grabación de video normal
+  if (!mediaRecorder) return false;
 
   try {
     mediaRecorder.stop();
@@ -2922,9 +3028,115 @@ async function createVideoFromFrames() {
 }
 
 function createAnimatedGIF() {
-  // Fallback: crear secuencia PNG para After Effects
-  alert('Tu navegador no soporta grabación de video. Se creará una secuencia PNG optimizada para After Effects.');
-  createAfterEffectsSequence();
+  if (recordedFrames.length === 0) {
+    alert('No hay frames grabados');
+    return;
+  }
+
+  const saveBtn = document.getElementById('saveBtn');
+  saveBtn.textContent = 'Creando GIF...';
+  saveBtn.style.color = '#ff9800';
+
+  try {
+    // Crear GIF usando gif.js
+    const gif = new GIF({
+      workers: 2,
+      quality: 10,
+      width: 540,
+      height: 675,
+      workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js'
+    });
+
+    // Añadir cada frame al GIF
+    recordedFrames.forEach((imageData) => {
+      gif.addFrame(imageData, { delay: 100 }); // 100ms = 10 FPS
+    });
+
+    gif.on('finished', async (blob) => {
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+      if (isMobile && navigator.share && navigator.canShare) {
+        try {
+          const file = new File([blob], `bisiona-${Date.now()}.gif`, { type: 'image/gif' });
+          if (navigator.canShare({ files: [file] })) {
+            await navigator.share({
+              files: [file],
+              title: 'Bisiona GIF',
+              text: 'Mi animación creada con Bisiona'
+            });
+
+            saveBtn.textContent = '✓ GIF Compartido';
+            saveBtn.style.color = '#4285f4';
+            setTimeout(() => {
+              saveBtn.textContent = 'Gravar';
+              saveBtn.style.color = '';
+            }, 2000);
+
+            recordedFrames = [];
+            return;
+          }
+        } catch (error) {
+          console.log('Web Share no disponible:', error);
+        }
+      }
+
+      // Descarga directa
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `bisiona-${Date.now()}.gif`;
+
+      if (isMobile) {
+        link.style.position = 'fixed';
+        link.style.top = '50%';
+        link.style.left = '50%';
+        link.style.transform = 'translate(-50%, -50%)';
+        link.style.zIndex = '10000';
+        link.style.padding = '20px';
+        link.style.background = 'rgba(0,0,0,0.8)';
+        link.style.color = 'white';
+        link.style.borderRadius = '8px';
+        link.textContent = 'Toca aquí para descargar el GIF';
+
+        document.body.appendChild(link);
+
+        setTimeout(() => {
+          link.click();
+          setTimeout(() => {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }, 3000);
+        }, 100);
+      } else {
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
+
+      saveBtn.textContent = '✓ GIF Listo';
+      saveBtn.style.color = '#4285f4';
+      setTimeout(() => {
+        saveBtn.textContent = 'Gravar';
+        saveBtn.style.color = '';
+      }, 2000);
+
+      recordedFrames = [];
+    });
+
+    gif.on('progress', (progress) => {
+      const percent = Math.round(progress * 100);
+      saveBtn.textContent = `Creando GIF ${percent}%`;
+    });
+
+    gif.render();
+
+  } catch (error) {
+    console.error('Error creando GIF:', error);
+    alert('Error al crear el GIF. Intenta grabar menos tiempo.');
+    saveBtn.textContent = 'Gravar';
+    saveBtn.style.color = '';
+  }
 }
 
 function createAfterEffectsSequence() {
