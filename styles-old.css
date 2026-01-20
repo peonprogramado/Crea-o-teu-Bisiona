@@ -1,0 +1,100 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #fafafa;
+  color: #111;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial,
+    sans-serif;
+}
+
+#controls {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #e0e0e0;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  backdrop-filter: blur(10px);
+  min-width: 280px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.control-group label {
+  font-weight: 600;
+  font-size: 14px;
+  color: #333;
+  margin: 0;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.slider-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  min-width: 40px;
+  text-align: center;
+}
+
+#density, #metallic, #blur, #brightness, #rotation, #contrast {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: #e0e0e0;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+#density::-webkit-slider-thumb, #metallic::-webkit-slider-thumb, #blur::-webkit-slider-thumb, #brightness::-webkit-slider-thumb, #rotation::-webkit-slider-thumb, #contrast::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #333;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+#density::-moz-range-thumb, #metallic::-moz-range-thumb, #blur::-moz-range-thumb, #brightness::-moz-range-thumb, #rotation::-moz-range-thumb, #contrast::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #333;
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Estilo especial para el slider metálico */
+#metallic::-webkit-slider-thumb {
+  background: linear-gradient(45deg, #c0c0c0, #f0f0f0, #c0c0c0);
+}
+
+#metallic::-moz-range-thumb {
+  background: linear-gradient(45deg, #c0c0c0, #f0f0f0, #c0c0c0);
+}
+
+
+
+
+#canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}

@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Film Grain Slider Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #ccc;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.6;
+        }
+
+        .demo-section {
+            background: #222;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .demo-title {
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            color: #4ecdc4;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 30px;
+        }
+
+        .svg-demo {
+            background: #333;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .svg-demo h3 {
+            margin-bottom: 15px;
+            color: #ff6b6b;
+        }
+
+        .svg-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+        }
+
+        .controls-info {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .controls-info h3 {
+            color: #4ecdc4;
+            margin-bottom: 15px;
+        }
+
+        .controls-info ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .controls-info li {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .controls-info li::before {
+            content: "▶";
+            position: absolute;
+            left: 0;
+            color: #ff6b6b;
+        }
+
+        .code-example {
+            background: #1a1a1a;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            border-left: 4px solid #4ecdc4;
+        }
+
+        .code-example h3 {
+            color: #4ecdc4;
+            margin-bottom: 15px;
+        }
+
+        .code-example pre {
+            background: #000;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .code-example code {
+            color: #f8f8f2;
+        }
+
+        .highlight {
+            color: #ff6b6b;
+        }
+
+        .string {
+            color: #a6e22e;
+        }
+
+        .comment {
+            color: #75715e;
+            font-style: italic;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .demo-section {
+                padding: 20px;
+            }
+            
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Film Grain Slider</h1>
+            <p>
+                Componente interactivo que genera efectos de grano de película animados 
+                como patrones SVG reutilizables. Perfecto para crear texturas vintage 
+                y efectos cinematográficos en tus diseños.
+            </p>
+        </div>
+
+        <div class="demo-section">
+            <h2 class="demo-title">Demo Principal</h2>
+            <div id="filmGrainContainer"></div>
+        </div>
+
+        <div class="demo-section">
+            <h2 class="demo-title">Ejemplos de Uso en SVG</h2>
+            <div class="demo-grid">
+                <div class="svg-demo">
+                    <h3>Círculo con Grano</h3>
+                    <div class="svg-container">
+                        <svg width="150" height="150" viewBox="0 0 150 150">
+                            <defs id="circleDefs"></defs>
+                            <circle cx="75" cy="75" r="60" id="grainCircle" stroke="#fff" stroke-width="2"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="svg-demo">
+                    <h3>Rectángulo con Grano</h3>
+                    <div class="svg-container">
+                        <svg width="200" height="120" viewBox="0 0 200 120">
+                            <defs id="rectDefs"></defs>
+                            <rect x="10" y="10" width="180" height="100" id="grainRect" stroke="#fff" stroke-width="2" rx="8"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="svg-demo">
+                    <h3>Polígono con Grano</h3>
+                    <div class="svg-container">
+                        <svg width="150" height="150" viewBox="0 0 150 150">
+                            <defs id="polygonDefs"></defs>
+                            <polygon points="75,20 120,60 120,110 30,110 30,60" id="grainPolygon" stroke="#fff" stroke-width="2"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="controls-info">
+            <h3>Controles Disponibles</h3>
+            <ul>
+                <li><strong>Intensidad del Grano:</strong> Controla la opacidad y visibilidad del efecto de grano</li>
+                <li><strong>Velocidad de Animación:</strong> Ajusta qué tan rápido se mueve y cambia el grano</li>
+                <li><strong>Tamaño del Patrón:</strong> Modifica el tamaño base del patrón repetitivo</li>
+                <li><strong>Densidad del Grano:</strong> Controla cuántas partículas de grano se generan</li>
+            </ul>
+        </div>
+
+        <div class="code-example">
+            <h3>Cómo Usar</h3>
+            <pre><code><span class="comment">// 1. Crear una instancia del slider</span>
+<span class="highlight">const</span> filmGrain = <span class="highlight">new</span> <span class="string">FilmGrainSlider</span>(<span class="string">'container-id'</span>, {
+    width: <span class="string">800</span>,
+    height: <span class="string">600</span>,
+    grainIntensity: <span class="string">50</span>,
+    animationSpeed: <span class="string">1</span>,
+    baseColor: <span class="string">'#ffffff'</span>,
+    grainColor: <span class="string">'#000000'</span>
+});
+
+<span class="comment">// 2. Aplicar el patrón a cualquier elemento SVG</span>
+<span class="highlight">const</span> svgElement = document.<span class="string">getElementById</span>(<span class="string">'mi-elemento'</span>);
+filmGrain.<span class="string">applyToElement</span>(svgElement);
+
+<span class="comment">// 3. O usar directamente la URL del patrón</span>
+svgElement.<span class="string">setAttribute</span>(<span class="string">'fill'</span>, filmGrain.<span class="string">getPatternUrl</span>());</code></pre>
+        </div>
+    </div>
+
+    <script src="./film-grain-slider.js"></script>
+    <script>
+        // Initialize main demo
+        const mainDemo = new FilmGrainSlider('filmGrainContainer', {
+            width: 800,
+            height: 400,
+            grainIntensity: 60,
+            animationSpeed: 1.2,
+            baseColor: '#f5f5f5',
+            grainColor: '#1a1a1a',
+            patternSize: 80
+        });
+
+        // Create smaller instances for SVG examples
+        setTimeout(() => {
+            // Circle example
+            const circleGrain = new FilmGrainSlider('temp-circle', {
+                width: 100,
+                height: 100,
+                grainIntensity: 40,
+                animationSpeed: 0.8,
+                baseColor: '#4ecdc4',
+                grainColor: '#1a1a1a',
+                patternSize: 50
+            });
+            
+            // Copy pattern to circle defs
+            const circleDefs = document.getElementById('circleDefs');
+            const circlePattern = circleGrain.pattern.cloneNode(true);
+            circlePattern.setAttribute('id', 'circleGrainPattern');
+            circleDefs.appendChild(circlePattern);
+            
+            document.getElementById('grainCircle').setAttribute('fill', 'url(#circleGrainPattern)');
+            circleGrain.destroy();
+
+            // Rectangle example
+            const rectGrain = new FilmGrainSlider('temp-rect', {
+                width: 100,
+                height: 100,
+                grainIntensity: 35,
+                animationSpeed: 1.5,
+                baseColor: '#ff6b6b',
+                grainColor: '#000000',
+                patternSize: 60
+            });
+            
+            const rectDefs = document.getElementById('rectDefs');
+            const rectPattern = rectGrain.pattern.cloneNode(true);
+            rectPattern.setAttribute('id', 'rectGrainPattern');
+            rectDefs.appendChild(rectPattern);
+            
+            document.getElementById('grainRect').setAttribute('fill', 'url(#rectGrainPattern)');
+            rectGrain.destroy();
+
+            // Polygon example
+            const polygonGrain = new FilmGrainSlider('temp-polygon', {
+                width: 100,
+                height: 100,
+                grainIntensity: 45,
+                animationSpeed: 0.6,
+                baseColor: '#a6e22e',
+                grainColor: '#2d2d2d',
+                patternSize: 40
+            });
+            
+            const polygonDefs = document.getElementById('polygonDefs');
+            const polygonPattern = polygonGrain.pattern.cloneNode(true);
+            polygonPattern.setAttribute('id', 'polygonGrainPattern');
+            polygonDefs.appendChild(polygonPattern);
+            
+            document.getElementById('grainPolygon').setAttribute('fill', 'url(#polygonGrainPattern)');
+            polygonGrain.destroy();
+
+            // Animate the example patterns
+            setInterval(() => {
+                updateExamplePattern('circleGrainPattern', '#4ecdc4', '#1a1a1a');
+                updateExamplePattern('rectGrainPattern', '#ff6b6b', '#000000');
+                updateExamplePattern('polygonGrainPattern', '#a6e22e', '#2d2d2d');
+            }, 100);
+        }, 100);
+
+        function updateExamplePattern(patternId, baseColor, grainColor) {
+            const pattern = document.getElementById(patternId);
+            if (!pattern) return;
+
+            const grainElements = pattern.querySelectorAll('.grain-element');
+            const time = Date.now() * 0.001;
+
+            grainElements.forEach((el, index) => {
+                const phase = index * 0.5;
+                const opacity = 0.3 + 0.2 * Math.sin(time * 2 + phase);
+                el.setAttribute('opacity', opacity);
+                
+                if (el.tagName === 'circle') {
+                    const currentCx = parseFloat(el.getAttribute('cx'));
+                    const currentCy = parseFloat(el.getAttribute('cy'));
+                    const newCx = currentCx + Math.sin(time + phase) * 0.5;
+                    const newCy = currentCy + Math.cos(time * 0.7 + phase) * 0.5;
+                    el.setAttribute('cx', newCx);
+                    el.setAttribute('cy', newCy);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

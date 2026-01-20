@@ -1,0 +1,804 @@
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  background: #fafafa;
+  color: #111;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen,
+    Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial,
+    sans-serif;
+  overflow: hidden; /* Quitar barras de scroll */
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Tema oscuro */
+body.dark-theme {
+  background: #000000;
+  color: #ffffff;
+}
+
+/* Logo */
+.logo-container {
+  position: fixed;
+  top: 60px;
+  left: 30px;
+  z-index: 1000;
+}
+
+.logo {
+  max-height: 35px;
+  width: auto;
+  display: block;
+}
+
+/* Logo Picasso */
+.logo-picasso-container {
+  position: fixed;
+  top: 60px;
+  right: 30px;
+  z-index: 1000;
+}
+
+.logo-picasso {
+  max-height: 35px;
+  width: auto;
+  display: block;
+}
+
+.controls {
+  position: fixed;
+  top: 150px;
+  left: 20px;
+  padding: 20px;
+  width: 280px;
+}
+
+.control-group {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
+
+.control-group label {
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: #333;
+  min-width: 120px;
+  flex-shrink: 0;
+  text-align: left;
+  transition: color 0.3s ease;
+}
+
+body.dark-theme .control-group label {
+  color: #ffffff;
+}
+
+.slider-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.slider-label {
+  font-size: 12px;
+  color: #666;
+  font-weight: 500;
+  width: 60px;
+  text-align: center;
+  flex-shrink: 0;
+  transition: color 0.3s ease;
+}
+
+body.dark-theme .slider-label {
+  color: #cccccc;
+}
+
+/* Estilos uniformes para todos los sliders */
+#density, #metallic, #lines, #outline, #watercolor, #filmgrain {
+  width: 200px;
+  height: 8px;
+  border-radius: 4px;
+  background: #e0e0e0;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  position: relative;
+  flex: none;
+}
+
+/* Thumbs para WebKit (Chrome, Safari) */
+#density::-webkit-slider-thumb, #metallic::-webkit-slider-thumb, #lines::-webkit-slider-thumb, #outline::-webkit-slider-thumb, #watercolor::-webkit-slider-thumb, #filmgrain::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #2B43FF;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px rgba(43, 67, 255, 0.3);
+}
+
+/* Thumbs para Firefox */
+#density::-moz-range-thumb, #metallic::-moz-range-thumb, #lines::-moz-range-thumb, #outline::-moz-range-thumb, #watercolor::-moz-range-thumb, #filmgrain::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #2B43FF;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 8px rgba(43, 67, 255, 0.3);
+}
+
+/* Tracks para WebKit */
+#density::-webkit-slider-track, #metallic::-webkit-slider-track, #lines::-webkit-slider-track, #outline::-webkit-slider-track, #watercolor::-webkit-slider-track, #filmgrain::-webkit-slider-track {
+  -webkit-appearance: none;
+  height: 8px;
+  border-radius: 4px;
+  background: #e0e0e0;
+}
+
+/* Tracks para Firefox */
+#density::-moz-range-track, #metallic::-moz-range-track, #lines::-moz-range-track, #outline::-moz-range-track, #watercolor::-moz-range-track, #filmgrain::-moz-range-track {
+  height: 8px;
+  border-radius: 4px;
+  background: #e0e0e0;
+  border: none;
+}
+
+/* Progreso para Firefox */
+#density::-moz-range-progress, #metallic::-moz-range-progress, #lines::-moz-range-progress, #outline::-moz-range-progress, #watercolor::-moz-range-progress, #filmgrain::-moz-range-progress {
+  height: 8px;
+  border-radius: 4px;
+  background: #2B43FF;
+}
+
+/* Progreso para WebKit (usando JavaScript) */
+#density, #metallic, #lines, #outline, #watercolor, #filmgrain {
+  background: linear-gradient(to right, #2B43FF 0%, #2B43FF var(--progress, 0%), #e0e0e0 var(--progress, 0%), #e0e0e0 100%);
+}
+
+
+
+
+#canvas {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* Botones en la esquina izquierda */
+.bottom-buttons {
+  position: fixed;
+  bottom: 30px;
+  left: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 100;
+}
+
+.bottom-btn {
+  width: 200px;
+  height: 50px;
+  background: transparent;
+  border: 1px solid #ccc;
+  color: #333;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+body.dark-theme .bottom-btn {
+  border-color: #666;
+  color: #ffffff;
+}
+
+.bottom-btn:hover {
+  border-color: #999;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+body.dark-theme .bottom-btn:hover {
+  border-color: #aaa;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.bottom-btn:active {
+  transform: translateY(1px);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+body.dark-theme .bottom-btn:active {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Responsive para botones */
+@media (max-width: 768px) {
+  .bottom-buttons {
+    bottom: 20px;
+    left: 20px;
+  }
+  
+  .bottom-btn {
+    width: 160px;
+    height: 45px;
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .bottom-buttons {
+    bottom: 15px;
+    left: 15px;
+  }
+  
+  .bottom-btn {
+    width: 140px;
+    height: 40px;
+    font-size: 13px;
+  }
+}
+
+/* Botones redondos en el lateral derecho */
+.right-buttons {
+  position: fixed;
+  top: 50%;
+  right: 30px;
+  transform: translateY(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  z-index: 100;
+}
+
+.round-btn {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.round-btn:hover {
+  transform: scale(1.1);
+}
+
+.round-btn:active {
+  transform: scale(0.95);
+}
+
+/* Botón negro */
+.black-btn {
+  background-color: #000000;
+}
+
+/* Botón negro en tema oscuro con borde blanco */
+body.dark-theme .black-btn {
+  border: 2pt solid #ffffff;
+}
+
+/* Botón azul */
+.blue-btn {
+  background-color: #2B43FF;
+}
+
+/* Botón blanco con borde gris de 2pt */
+.white-btn {
+  background-color: #ffffff;
+  border: 2pt solid #999999;
+}
+
+/* Responsive para botones redondos */
+@media (max-width: 768px) {
+  .right-buttons {
+    right: 20px;
+  }
+  
+  .round-btn {
+    width: 50px;
+    height: 50px;
+  }
+}
+
+@media (max-width: 480px) {
+  .right-buttons {
+    right: 15px;
+  }
+  
+  .round-btn {
+    width: 45px;
+    height: 45px;
+  }
+}
+
+/* Media Queries Responsivas - Solo para móvil (< 768px) */
+@media (max-width: 768px) {
+  /* Permitir scroll en móvil */
+  html, body {
+    overflow-y: auto;
+    overflow-x: hidden;
+    /* Forzar viewport real en móvil */
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+  }
+  
+  /* Crear layout en columna para móvil */
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 4rem;
+    /* Asegurar que el body ocupe todo el ancho */
+    width: 100vw;
+    max-width: 100vw;
+  }
+  
+  /* Ajustar logos para móvil */
+  .logo-container {
+    top: 1rem;
+    left: 1rem;
+  }
+  
+  .logo-picasso-container {
+    top: 1rem;
+    right: 1rem;
+  }
+  
+  .logo, .logo-picasso {
+    max-height: 2rem;
+  }
+  
+  /* Canvas primero en el orden visual - AJUSTADO PARA MÓVIL REAL */
+  #canvas {
+    order: 1;
+    position: relative;
+    width: 100vw !important;
+    height: 60vh !important;
+    margin: 0 0 30px 0;
+    /* Ajuste más conservador para móviles reales */
+    transform: translateX(-20px) scale(1.05);
+    transform-origin: center center;
+    object-fit: contain;
+    display: block;
+    align-self: center;
+    /* Forzar posicionamiento correcto */
+    left: 0;
+    right: 0;
+  }
+  
+  /* Reposicionar botones redondos después del canvas y antes de los controles */
+  .right-buttons {
+    order: 2;
+    position: relative;
+    top: auto;
+    right: auto;
+    transform: none;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  
+  /* Reposicionar controles para móvil después de los botones de color */
+  .controls {
+    order: 3;
+    position: relative;
+    top: auto;
+    left: auto;
+    width: 100%;
+    max-width: 90vw;
+    margin: 2rem auto 2rem;
+    padding: 1rem;
+    box-sizing: border-box;
+  }
+  
+  /* Ajustar grupos de control */
+  .control-group {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .control-group label {
+    font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    font-weight: 500;
+    min-width: auto;
+    font-size: 1.1rem; /* Aumentado de 1rem a 1.1rem para mejor legibilidad */
+    margin-bottom: 0.5rem;
+    text-align: center;
+    width: 100%;
+  }
+  
+  /* Mejorar tamaño de fuente de los labels de sliders en móvil */
+  .slider-label {
+    font-size: 14px !important; /* Aumentado de 12px a 14px */
+    font-weight: 600; /* Más peso para mejor legibilidad */
+  }
+  
+  .slider-container {
+    width: 100%;
+    justify-content: center;
+  }
+  
+  #density, #metallic, #lines, #outline, #watercolor, #filmgrain {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .round-btn {
+    width: 3.5rem;
+    height: 3.5rem;
+  }
+  
+  /* Ajustar botones inferiores al final */
+  .bottom-buttons {
+    order: 4;
+    position: relative;
+    bottom: auto;
+    left: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+  
+  .bottom-btn {
+    width: 300px;
+    height: 70px;
+    font-size: 1.1rem; /* Aumentado de 1rem a 1.1rem para mejor legibilidad */
+    font-weight: 500; /* Añadir peso para mejor legibilidad */
+  }
+}
+
+/* Media Query para DISPOSITIVOS MÓVILES REALES - Detecta touch */
+@media (max-width: 768px) and (pointer: coarse) and (hover: none) {
+  #canvas {
+    /* Ajuste específico para móviles reales con touch */
+    transform: translateX(-10px) scale(1.02) !important;
+    width: 100vw !important;
+    height: 55vh !important;
+    margin: 0 auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    position: relative !important;
+  }
+  
+  /* Asegurar que el contenedor no cause overflow */
+  body {
+    overflow-x: hidden !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+}
+
+/* Media Query específica para pantallas muy pequeñas */
+@media (max-width: 480px) {
+  /* Logos más pequeños solo en móvil S */
+  .logo-container {
+    top: 0.8rem;
+    left: 0.8rem;
+  }
+  
+  .logo-picasso-container {
+    top: 0.8rem;
+    right: 0.8rem;
+  }
+  
+  .logo, .logo-picasso {
+    max-height: 1.2rem;
+  }
+  
+  .controls {
+    margin: 3rem auto 1rem;
+    padding: 0.75rem;
+  }
+  
+  .control-group {
+    margin-bottom: 1.25rem;
+  }
+  
+  .control-group label {
+    font-family: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+    font-weight: 500;
+    font-size: 1rem; /* Aumentado de 0.9rem a 1rem para mejor legibilidad en pantallas pequeñas */
+    text-align: center;
+    width: 100%;
+  }
+  
+  /* Mejorar también los labels de sliders en pantallas muy pequeñas */
+  .slider-label {
+    font-size: 13px !important; /* Mantener legible pero no demasiado grande */
+    font-weight: 600;
+  }
+  
+  .round-btn {
+    width: 3rem;
+    height: 3rem;
+  }
+  
+  .bottom-btn {
+    width: 300px;
+    height: 70px;
+    font-size: 1rem; /* Aumentado de 0.9rem a 1rem para mejor legibilidad en pantallas pequeñas */
+    font-weight: 500; /* Añadir peso para mejor legibilidad */
+  }
+  
+  #canvas {
+    height: 55vh !important;
+    margin: 0 0 30px 0;
+    transform: translateX(-40px) scale(1.0);
+    transform-origin: center center;
+    align-self: center;
+  }
+}
+
+/* Media Queries específicas para iPhone SE e iPhone 14 Pro Max */
+/* iPhone SE (375px width) - Desplazamiento hacia la izquierda y agrandado */
+@media screen and (max-width: 375px) and (min-width: 320px) and (max-height: 812px) {
+  #canvas {
+    width: 100vw !important;
+    height: 60vh !important;
+    margin: 0 0 30px 0 !important;
+    transform: translateX(-120px) scale(1.4) !important;
+    transform-origin: left center !important;
+    align-self: flex-start !important;
+    overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
+  }
+  
+  /* Ajustar el contenedor del body para permitir el overflow del canvas */
+  body {
+    overflow-x: hidden !important;
+  }
+}
+
+/* iPhone 14 Pro Max y dispositivos similares (430px width) - Desplazamiento hacia la izquierda y agrandado */
+@media screen and (min-width: 414px) and (max-width: 430px) and (min-height: 800px) {
+  #canvas {
+    width: 100vw !important;
+    height: 65vh !important;
+    margin: 0 0 30px 0 !important;
+    transform: translateX(-200px) scale(1.5) !important;
+    transform-origin: left center !important;
+    align-self: flex-start !important;
+    overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
+  }
+  
+  /* Ajustar el contenedor del body para permitir el overflow del canvas */
+  body {
+    overflow-x: hidden !important;
+  }
+}
+
+/* Samsung Galaxy S8+ (360px width) - Desplazamiento hacia la izquierda y agrandado */
+@media screen and (min-width: 360px) and (max-width: 380px) and (min-height: 700px) and (max-height: 800px) {
+  #canvas {
+    width: 100vw !important;
+    height: 62vh !important;
+    margin: 0 0 30px 0 !important;
+    transform: translateX(-180px) scale(1.45) !important;
+    transform-origin: left center !important;
+    align-self: flex-start !important;
+    overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
+  }
+  
+  /* Ajustar el contenedor del body para permitir el overflow del canvas */
+  body {
+    overflow-x: hidden !important;
+  }
+}
+
+/* iPhone XR (414px width, 896px height) - Desplazamiento específico más hacia la derecha */
+@media screen and (width: 414px) and (height: 896px) {
+  #canvas {
+    width: 100vw !important;
+    height: 63vh !important;
+    margin: 0 0 30px 0 !important;
+    transform: translateX(-140px) scale(1.45) !important;
+    transform-origin: left center !important;
+    align-self: flex-start !important;
+    overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
+  }
+  
+  /* Ajustar el contenedor del body para permitir el overflow del canvas */
+  body {
+    overflow-x: hidden !important;
+  }
+}
+
+/* iPhone 12 Pro (390px width, 844px height) - Aumento de tamaño con poco desplazamiento */
+@media screen and (width: 390px) and (height: 844px) {
+  #canvas {
+    width: 100vw !important;
+    height: 64vh !important;
+    margin: 0 0 30px 0 !important;
+    transform: translateX(-190px) scale(1.6) !important;
+    transform-origin: left center !important;
+    align-self: flex-start !important;
+    overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
+  }
+  
+  /* Ajustar el contenedor del body para permitir el overflow del canvas */
+  body {
+    overflow-x: hidden !important;
+  }
+}
+
+/* Google Pixel 7 (aproximadamente 412px width) - Desplazamiento ajustado hacia la derecha */
+@media screen and (min-width: 411px) and (max-width: 413px) and (min-height: 910px) and (max-height: 920px) {
+  #canvas {
+    width: 100vw !important;
+    height: 64vh !important;
+    margin: 0 0 30px 0 !important;
+    transform: translateX(-120px) scale(1.55) !important;
+    transform-origin: left center !important;
+    align-self: flex-start !important;
+    overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
+  }
+  
+  /* Ajustar el contenedor del body para permitir el overflow del canvas */
+  body {
+    overflow-x: hidden !important;
+  }
+}
+
+/* Samsung Galaxy S20 Ultra (412px width, 915px height) - MÁXIMA PRIORIDAD - SVG muy desplazado a la izquierda */
+@media screen and (device-width: 412px) and (device-height: 915px), 
+       screen and (width: 412px) and (height: 915px) {
+  body #canvas {
+    width: 100vw !important;
+    height: 66vh !important;
+    margin: 0 0 30px 0 !important;
+    transform: translateX(-250px) scale(1.7) !important;
+    transform-origin: left center !important;
+    align-self: flex-start !important;
+    overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
+  }
+  
+  /* Ajustar el contenedor del body para permitir el overflow del canvas */
+  body {
+    overflow-x: hidden !important;
+  }
+}
+
+/* Dispositivos móviles pequeños 320px x 608px - Logos más pequeños y SVG ajustado */
+@media screen and (width: 320px) and (height: 568px), 
+       screen and (width: 320px) and (height: 608px) {
+  .logo {
+    max-height: 20px !important;
+  }
+  
+  .logo-picasso {
+    max-height: 20px !important;
+  }
+  
+  #canvas {
+    width: 100vw !important;
+    height: 60vh !important;
+    margin: 0 0 30px 0 !important;
+    transform: translateX(-115px) scale(1.5) !important;
+    transform-origin: left center !important;
+    align-self: flex-start !important;
+    overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
+  }
+  
+  /* Ajustar el contenedor del body para permitir el overflow del canvas */
+  body {
+    overflow-x: hidden !important;
+  }
+}
+
+/* Dispositivos móviles L 425px x 608px - SVG más grande sin desplazamiento */
+@media screen and (width: 425px) and (height: 608px) {
+  #canvas {
+    width: 100vw !important;
+    height: 62vh !important;
+    margin: 0 0 30px 0 !important;
+    transform: translateX(-60px) scale(1.6) !important;
+    transform-origin: center center !important;
+    align-self: center !important;
+    overflow: visible !important;
+    order: 1 !important;
+    position: relative !important;
+    display: block !important;
+  }
+  
+  /* Ajustar el contenedor del body para permitir el overflow del canvas */
+  body {
+    overflow-x: hidden !important;
+  }
+}
+
+/* ========================================= */
+/* DIAGNÓSTICO Y SOLUCIÓN FINAL */
+/* PROBLEMA: Las media queries específicas sobrescriben la regla de touch */
+/* SOLUCIÓN: Regla con MÁXIMA PRIORIDAD al final del archivo */
+/* ========================================= */
+
+/* SOLUCIÓN 1: Detectar dispositivos móviles REALES (no DevTools) */
+@media screen and (max-width: 768px) and (pointer: coarse) and (hover: none) {
+  #canvas {
+    /* SOLUCIÓN CORREGIDA: Más a la izquierda y separación de botones */
+    transform: translateX(-95px) scale(1.6) !important;
+    width: 100vw !important;
+    height: 65vh !important;
+    margin: 0 auto 15px auto !important;
+    left: 0 !important;
+    right: 0 !important;
+    position: relative !important;
+    order: 1 !important;
+    display: block !important;
+    align-self: center !important;
+    /* Centrado perfecto */
+    transform-origin: center center !important;
+  }
+  
+  /* Evitar overflow horizontal que causa desplazamiento */
+  body {
+    overflow-x: hidden !important;
+    width: 100vw !important;
+    max-width: 100vw !important;
+  }
+}
+
+/* SOLUCIÓN 2: Safari iOS específico (mayor especificidad) */
+@supports (-webkit-touch-callout: none) {
+  @media screen and (max-width: 768px) {
+    #canvas {
+      /* Safari iOS: Aún más a la izquierda y mayor separación */
+      transform: translateX(-120px) scale(1.6) !important;
+      -webkit-transform: translateX(-120px) scale(1.6) !important;
+      width: 100vw !important;
+      height: 70vh !important;
+      margin: 0 auto 25px auto !important;
+      position: relative !important;
+      left: 0 !important;
+      right: 0 !important;
+      top: 0 !important;
+      transform-origin: center center !important;
+    }
+    
+    body {
+      -webkit-text-size-adjust: 100% !important;
+      overflow-x: hidden !important;
+    }
+  }
+}

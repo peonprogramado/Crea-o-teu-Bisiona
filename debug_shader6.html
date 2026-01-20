@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Shader6 - Efecto GLSL Bayer</title>
+    <style>
+        body { margin: 0; padding: 20px; font-family: Arial, sans-serif; background: #f0f0f0; }
+        #canvas { border: 1px solid #000; background: white; }
+        .info { margin: 10px 0; font-weight: bold; color: #333; }
+        .controls { margin: 10px 0; }
+        button { margin: 5px; padding: 10px; border: none; border-radius: 5px; cursor: pointer; }
+        .slider { margin: 10px 0; }
+        input[type="range"] { width: 200px; }
+        .status { margin: 10px 0; padding: 10px; background: #e8f4fd; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Debug Shader6 - Efecto GLSL Bayer</h1>
+    <div class="info">Este test muestra el efecto shader6 que se activa con <strong>Delineado + Semitono</strong><br>
+    <small>Efecto basado en GLSL con patrones Bayer dithering animados</small></div>
+    
+    <div class="status">
+        <strong>Condición:</strong> linesIntensity > 0 && desired > 1<br>
+        <strong>Estado:</strong> <span id="status">Inactivo</span>
+    </div>
+    
+    <div class="controls">
+        <button onclick="setColor('#000000')" style="background: #000; color: white;">Negro</button>
+        <button onclick="setColor('#ffffff')" style="background: #fff; color: black; border: 1px solid #ccc;">Blanco</button>
+        <button onclick="setColor('#2B43FF')" style="background: #2B43FF; color: white;">Azul</button>
+    </div>
+    
+    <div class="slider">
+        <label>Delineado (linesIntensity): <span id="linesValue">0</span></label><br>
+        <input type="range" id="lines" min="0" max="100" value="0" step="5" oninput="updateLines(this.value)">
+    </div>
+    
+    <div class="slider">
+        <label>Semitono (desired): <span id="desiredValue">1</span></label><br>
+        <input type="range" id="desired" min="1" max="15" value="1" step="1" oninput="updateDesired(this.value)">
+    </div>
+    
+    <canvas id="canvas" width="600" height="600"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let currentColor = '#000000';
+        let linesIntensity = 0;
+        let desired = 1;
+        
+        function setColor(color) {
+            currentColor = color;
+            updateStatus();
+        }
+        
+        function updateLines(value) {
+            linesIntensity = parseInt(value);
+            document.getElementById('linesValue').textContent = value;
+            updateStatus();
+        }
+        
+        function updateDesired(value) {
+            desired = parseInt(value);
+            document.getElementById('desiredValue').textContent = value;
+            updateStatus();
+        }
+        
+        function updateStatus() {
+            const shader6Active = linesIntensity > 0 && desired > 1;
+            const statusEl = document.getElementById('status');
+            if (shader6Active) {
+                statusEl.textContent = '✅ SHADER6 ACTIVO';
+                statusEl.style.color = 'green';
+                statusEl.style.fontWeight = 'bold';
+            } else {
+                statusEl.textContent = '❌ Inactivo';
+                statusEl.style.color = 'red';
+                statusEl.style.fontWeight = 'normal';
+            }
+        }
+
+        // Función Bayer dithering
+        function bayer32(x, y) {
+            const bayer2 = (a_x, a_y) => {
+                const ax = Math.floor(a_x);
+                const ay = Math.floor(a_y);
+                return (ax / 2.0 + ay * ay * 0.75) % 1.0;
+            };
+            
+            const bayer4 = (a_x, a_y) => bayer2(a_x * 0.5, a_y * 0.5) * 0.25 + bayer2(a_x, a_y);
+            const bayer8 = (a_x, a_y) => bayer4(a_x * 0.5, a_y * 0.5) * 0.25 + bayer2(a_x, a_y);
+            const bayer16 = (a_x, a_y) => bayer8(a_x * 0.5, a_y * 0.5) * 0.25 + bayer2(a_x, a_y);
+            const bayer32_calc = (a_x, a_y) => bayer16(a_x * 0.5, a_y * 0.5) * 0.25 + bayer2(a_x, a_y);
+            
+            return bayer32_calc(x, y);
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Solo dibujar si shader6 está activo
+            const shader6Active = linesIntensity > 0 && desired > 1;
+            if (!shader6Active) {
+                ctx.fillStyle = '#f0f0f0';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#999';
+                ctx.font = '20px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Ajusta Delineado > 0 y Semitono > 1 para activar Shader6', canvas.width/2, canvas.height/2);
+                requestAnimationFrame(animate);
+                return;
+            }
+            
+            const time = Date.now() * 0.001;
+            const linesFactor = linesIntensity / 100;
+            const densityFactor = (desired - 1) / 14;
+            const intensity = Math.min(linesFactor, densityFactor);
+            
+            // Parámetros del shader6 basados en el GLSL original
+            const gridSize = 150 * (0.5 + intensity * 1.0);
+            const bayerScale = 0.5 * (0.3 + intensity * 0.7);
+            const timeIncrement = time * 0.025;
+            
+            // Crear el efecto Bayer dithering con patrones animados
+            const imageData = ctx.createImageData(canvas.width, canvas.height);
+            const data = imageData.data;
+            
+            for (let y = 0; y < canvas.height; y++) {
+                for (let x = 0; x < canvas.width; x++) {
+                    const index = (y * canvas.width + x) * 4;
+                    
+                    // Convertir coordenadas a UV como en el shader
+                    const uv_x = x / canvas.width;
+                    const uv_y = 1.0 - (y / canvas.height);
+                    
+                    // Posición en el grid
+                    const pos_x = uv_y * gridSize;
+                    const pos_y = uv_x * gridSize;
+                    
+                    // Funciones f() del shader original
+                    const f = (n) => Math.pow(Math.sin(n), 2.0) * gridSize;
+                    
+                    // Factores de tiempo animados
+                    const timeFactor0 = f(0.0 + Math.sin(timeIncrement / 4.0));
+                    const timeFactor1 = f(1.0 + Math.sin(timeIncrement / 4.0));
+                    const timeFactor2 = f(2.0 + Math.sin(timeIncrement / 4.0));
+                    
+                    // Cálculo de 'a' como en el shader original
+                    let a = 3.0;
+                    a += Math.sin(2.0 * Math.atan2((pos_x - 0.0 * 9.0 - 62.0), (pos_y - 0.0 * 9.0 - timeFactor0 + 0.0001)));
+                    a += Math.sin(2.0 * Math.atan2((pos_y - 1.0 * 9.0 - 62.0), (pos_y - 1.0 * 9.0 - timeFactor1 + 0.0001)));
+                    a += Math.sin(2.0 * Math.atan2((pos_x - 2.0 * 9.0 - 62.0), (pos_x - 2.0 * 9.0 - timeFactor2 + 0.0001)));
+                    
+                    // Patrón p
+                    const p = f(a - timeIncrement) / 3.0;
+                    const col = (p * 3.0) / gridSize;
+                    
+                    // Bayer dithering
+                    const m = bayer32(x * bayerScale, y * bayerScale);
+                    const d = col > m ? 1.0 : 0.0;
+                    
+                    // Colores adaptativos
+                    let finalColor;
+                    if (currentColor === '#ffffff') {
+                        finalColor = d > 0.5 ? 0 : 255; // Negro sobre blanco
+                    } else if (currentColor === '#000000') {
+                        finalColor = d > 0.5 ? 255 : 0; // Blanco sobre negro
+                    } else if (currentColor === '#2B43FF') {
+                        finalColor = d > 0.5 ? 255 : 43; // Blanco/azul sobre azul
+                    } else {
+                        finalColor = d > 0.5 ? 0 : 255; // Por defecto
+                    }
+                    
+                    data[index] = finalColor;     // R
+                    data[index + 1] = finalColor; // G
+                    data[index + 2] = finalColor; // B
+                    data[index + 3] = Math.floor(255 * intensity); // A
+                }
+            }
+            
+            ctx.putImageData(imageData, 0, 0);
+            requestAnimationFrame(animate);
+        }
+
+        animate();
+        updateStatus();
+    </script>
+</body>
+</html>

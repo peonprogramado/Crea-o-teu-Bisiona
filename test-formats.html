@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test de Formatos de Video</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .format-test {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .supported {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .not-supported {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test de Compatibilidad de Formatos de Video</h1>
+    <p>Este test verifica qué formatos de video soporta tu navegador para la grabación.</p>
+    
+    <div id="results"></div>
+
+    <script>
+        const formats = [
+            'video/mp4;codecs=avc1.42E01E', // H.264 Baseline Profile (After Effects optimizado)
+            'video/mp4;codecs=h264',
+            'video/mp4;codecs=avc1',
+            'video/mp4',
+            'video/webm;codecs=vp9',
+            'video/webm;codecs=vp8',
+            'video/webm'
+        ];
+
+        const resultsDiv = document.getElementById('results');
+
+        formats.forEach(format => {
+            const isSupported = MediaRecorder.isTypeSupported(format);
+            const div = document.createElement('div');
+            div.className = `format-test ${isSupported ? 'supported' : 'not-supported'}`;
+            div.innerHTML = `
+                <strong>${format}</strong><br>
+                Estado: ${isSupported ? '✅ Soportado' : '❌ No soportado'}
+            `;
+            resultsDiv.appendChild(div);
+        });
+
+        // Mostrar información adicional
+        const infoDiv = document.createElement('div');
+        infoDiv.innerHTML = `
+            <h2>Información del Navegador</h2>
+            <p><strong>User Agent:</strong> ${navigator.userAgent}</p>
+            <p><strong>MediaRecorder disponible:</strong> ${typeof MediaRecorder !== 'undefined' ? '✅ Sí' : '❌ No'}</p>
+            
+            <h2>Compatibilidad con After Effects</h2>
+            <p><strong>Formato recomendado:</strong> video/mp4;codecs=avc1.42E01E</p>
+            <p><strong>Especificaciones:</strong></p>
+            <ul>
+                <li>H.264 Baseline Profile para máxima compatibilidad</li>
+                <li>30 FPS estándar profesional</li>
+                <li>15 Mbps bitrate para calidad profesional</li>
+                <li>1920x1080 resolución HD</li>
+                <li>Canal alpha preservado para composición</li>
+            </ul>
+        `;
+        resultsDiv.appendChild(infoDiv);
+    </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no, shrink-to-fit=no, minimal-ui" />
+  <title>Crea o teu Bisiona</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@100..900&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="./assets/Insta destacadas.png">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+
+<body>
+  <!-- Logo -->
+  <div class="logo-container">
+    <img src="./assets/bisionabold.png" alt="Logo" class="logo" />
+  </div>
+
+  <!-- Logo Picasso -->
+  <div class="logo-picasso-container">
+    <img src="./assets/logopicasso.png" alt="Logo Picasso" class="logo-picasso" />
+  </div>
+
+  <div class="controls">
+    <div class="control-group">
+      <label for="density">Semitono</label>
+      <div class="slider-container">
+        <input id="density" type="range" min="1" max="15" step="1" value="1" />
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label for="metallic">Metalizado</label>
+      <div class="slider-container">
+        <input id="metallic" type="range" min="0" max="100" step="1" value="0" />
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label for="lines">Delineado</label>
+      <div class="slider-container">
+        <input id="lines" type="range" min="0" max="100" step="5" value="0" />
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label for="outline">Contorno</label>
+      <div class="slider-container">
+        <input id="outline" type="range" min="0" max="20" step="1" value="0" />
+      </div>
+    </div>
+
+    <div class="control-group">
+      <label for="watercolor">Acuarela</label>
+      <div class="slider-container">
+        <input id="watercolor" type="range" min="0" max="100" step="5" value="0" />
+      </div>
+    </div>
+
+
+    <div class="control-group">
+      <label for="filmgrain">Ruido</label>
+      <div class="slider-container">
+        <input id="filmgrain" type="range" min="0" max="100" step="5" value="0" />
+      </div>
+    </div>
+
+  </div>
+  <canvas id="canvas"></canvas>
+
+  <!-- Botones en la parte inferior -->
+  <div class="bottom-buttons">
+    <button class="bottom-btn" id="exportBtn">Gardar</button>
+    <button class="bottom-btn" id="saveBtn">Gravar</button>
+  </div>
+
+  <!-- Botones redondos en el lateral derecho -->
+  <div class="right-buttons">
+    <button class="round-btn black-btn" id="blackBtn"></button>
+    <button class="round-btn blue-btn" id="blueBtn"></button>
+    <button class="round-btn white-btn" id="whiteBtn"></button>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"
+    integrity="sha384-gT1Lz9q2qO0nZC7X9gQxQ7mU8aCw9b8r2iV8G2g6v7o5LrKQ7n6bK7l9y3YQ8pJY"
+    crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.7.0/p5.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="./film-grain-slider.js"></script>
+  <script src="./shader-simple.js"></script>
+  <script src="./sketch.js" defer></script>
+</body>
+
+</html>
