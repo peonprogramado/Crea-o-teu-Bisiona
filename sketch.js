@@ -3047,7 +3047,15 @@ async function createMP4OrGIF() {
   // Detectar si el navegador soporta mp4-muxer y VideoEncoder
   const supportsMP4 = typeof Mp4Muxer !== 'undefined' && typeof VideoEncoder !== 'undefined';
 
-  if (supportsMP4) {
+  // Detectar navegador específico
+  const isChrome = /Chrome/.test(navigator.userAgent) && /Google Inc/.test(navigator.vendor);
+  const isSafari = /Safari/.test(navigator.userAgent) && /Apple Computer/.test(navigator.vendor);
+
+  // Chrome iOS y Android Chrome deberían usar MP4
+  // Solo Safari iOS debería usar GIF
+  const shouldUseMP4 = supportsMP4 && (isChrome || !isSafari);
+
+  if (shouldUseMP4) {
     try {
       saveBtn.textContent = 'Creando MP4...';
       saveBtn.style.color = '#ff9800';
@@ -3059,7 +3067,7 @@ async function createMP4OrGIF() {
     }
   }
 
-  // Fallback a GIF si MP4 no está disponible o falla
+  // Fallback a GIF si MP4 no está disponible o falla (principalmente Safari iOS)
   console.log('Usando GIF como formato de salida');
   createAnimatedGIF();
 }
