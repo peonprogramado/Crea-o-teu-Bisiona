@@ -2691,41 +2691,79 @@ async function startCanvasRecording() {
       }
     };
 
-    mediaRecorder.onstop = () => {
+    mediaRecorder.onstop = async () => {
       // Crear blob y descargar
       const blob = new Blob(recordedChunks, { type: 'video/webm' });
-      const url = URL.createObjectURL(blob);
 
       // Detectar si es móvil
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
       if (isMobile) {
-        // En móvil: abrir en nueva pestaña para que el usuario pueda descargar manualmente
-        const newWindow = window.open(url, '_blank');
-        if (!newWindow) {
-          // Si el popup fue bloqueado, intentar descarga directa
-          const link = document.createElement('a');
-          link.href = url;
-          link.download = `bisiona-video-${Date.now()}.webm`;
-          link.target = '_blank';
-          link.style.display = 'none';
-          document.body.appendChild(link);
+        // Intentar usar Web Share API primero (mejor para móviles)
+        if (navigator.share && navigator.canShare) {
+          try {
+            const file = new File([blob], `bisiona-video-${Date.now()}.webm`, { type: 'video/webm' });
 
-          // Simular click con evento touch para móvil
-          const clickEvent = new MouseEvent('click', {
-            view: window,
-            bubbles: true,
-            cancelable: true
-          });
-          link.dispatchEvent(clickEvent);
+            if (navigator.canShare({ files: [file] })) {
+              await navigator.share({
+                files: [file],
+                title: 'Bisiona Video',
+                text: 'Mi video creado con Bisiona'
+              });
 
+              // Limpiar después de compartir
+              recordedChunks = [];
+              isRecording = false;
+
+              const saveBtn = document.getElementById('saveBtn');
+              saveBtn.textContent = '✓ Video Compartido';
+              saveBtn.style.color = '#4285f4';
+              setTimeout(() => {
+                saveBtn.textContent = 'Gravar';
+                saveBtn.style.color = '';
+              }, 2000);
+
+              return;
+            }
+          } catch (error) {
+            console.log('Web Share no disponible, intentando descarga directa:', error);
+          }
+        }
+
+        // Fallback: descarga directa para móvil
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `bisiona-video-${Date.now()}.webm`;
+
+        // Hacer el link visible temporalmente para iOS
+        link.style.position = 'fixed';
+        link.style.top = '50%';
+        link.style.left = '50%';
+        link.style.transform = 'translate(-50%, -50%)';
+        link.style.zIndex = '10000';
+        link.style.padding = '20px';
+        link.style.background = 'rgba(0,0,0,0.8)';
+        link.style.color = 'white';
+        link.style.borderRadius = '8px';
+        link.textContent = 'Toca aquí para descargar el video';
+
+        document.body.appendChild(link);
+
+        // Auto-click después de un momento
+        setTimeout(() => {
+          link.click();
+
+          // Remover después de 3 segundos
           setTimeout(() => {
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
-          }, 100);
-        }
+          }, 3000);
+        }, 100);
+
       } else {
         // En desktop: descarga automática
+        const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
         link.download = `bisiona-video-${Date.now()}.webm`;
