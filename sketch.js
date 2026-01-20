@@ -2695,13 +2695,45 @@ async function startCanvasRecording() {
       // Crear blob y descargar
       const blob = new Blob(recordedChunks, { type: 'video/webm' });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `bisiona-video-${Date.now()}.webm`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
+
+      // Detectar si es móvil
+      const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+      if (isMobile) {
+        // En móvil: abrir en nueva pestaña para que el usuario pueda descargar manualmente
+        const newWindow = window.open(url, '_blank');
+        if (!newWindow) {
+          // Si el popup fue bloqueado, intentar descarga directa
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = `bisiona-video-${Date.now()}.webm`;
+          link.target = '_blank';
+          link.style.display = 'none';
+          document.body.appendChild(link);
+
+          // Simular click con evento touch para móvil
+          const clickEvent = new MouseEvent('click', {
+            view: window,
+            bubbles: true,
+            cancelable: true
+          });
+          link.dispatchEvent(clickEvent);
+
+          setTimeout(() => {
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+          }, 100);
+        }
+      } else {
+        // En desktop: descarga automática
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `bisiona-video-${Date.now()}.webm`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }
 
       // Limpiar
       recordedChunks = [];
@@ -2709,7 +2741,7 @@ async function startCanvasRecording() {
 
       // Feedback visual
       const saveBtn = document.getElementById('saveBtn');
-      saveBtn.textContent = '✓ Video Descargado';
+      saveBtn.textContent = '✓ Video Listo';
       saveBtn.style.color = '#4285f4';
       setTimeout(() => {
         saveBtn.textContent = 'Gravar';

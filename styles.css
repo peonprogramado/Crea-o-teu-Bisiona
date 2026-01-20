@@ -365,7 +365,7 @@ body.dark-theme .black-btn {
     position: relative;
     width: 100vw !important;
     height: 60vh !important;
-    margin: 0 0 30px 0;
+    margin: 0 0 50px 0;
     /* Ajuste más conservador para móviles reales */
     transform: translateX(-20px) scale(1.05);
     transform-origin: center center;
@@ -540,7 +540,7 @@ body.dark-theme .black-btn {
   
   #canvas {
     height: 55vh !important;
-    margin: 0 0 30px 0;
+    margin: 0 0 50px 0;
     transform: translateX(-40px) scale(1.0);
     transform-origin: center center;
     align-self: center;
@@ -760,7 +760,7 @@ body.dark-theme .black-btn {
     transform: translateX(-95px) scale(1.6) !important;
     width: 100vw !important;
     height: 65vh !important;
-    margin: 0 auto 15px auto !important;
+    margin: 0 auto 50px auto !important;
     left: 0 !important;
     right: 0 !important;
     position: relative !important;
@@ -788,7 +788,7 @@ body.dark-theme .black-btn {
       -webkit-transform: translateX(-120px) scale(1.6) !important;
       width: 100vw !important;
       height: 70vh !important;
-      margin: 0 auto 25px auto !important;
+      margin: 0 auto 50px auto !important;
       position: relative !important;
       left: 0 !important;
       right: 0 !important;
