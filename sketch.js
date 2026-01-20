@@ -2760,17 +2760,20 @@ async function startCanvasRecording() {
     // Configurar el stream del canvas de grabación
     const stream = recordingCanvas.captureStream(30); // 30 FPS
 
-    // Configurar MediaRecorder para WebM
+    // Configurar MediaRecorder para MP4
     const options = {
-      mimeType: 'video/webm;codecs=vp9',
+      mimeType: 'video/mp4;codecs=avc1',
       videoBitsPerSecond: 5000000 // 5 Mbps para buena calidad
     };
 
-    // Fallback si VP9 no está disponible
+    // Fallback si MP4 no está disponible, usar WebM
     if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-      options.mimeType = 'video/webm;codecs=vp8';
+      options.mimeType = 'video/webm;codecs=vp9';
       if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-        options.mimeType = 'video/webm';
+        options.mimeType = 'video/webm;codecs=vp8';
+        if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          options.mimeType = 'video/webm';
+        }
       }
     }
 
@@ -2784,8 +2787,14 @@ async function startCanvasRecording() {
     };
 
     mediaRecorder.onstop = async () => {
+      // Determinar tipo de archivo basado en el mimeType usado
+      const mimeType = options.mimeType;
+      const isMP4 = mimeType.includes('mp4');
+      const fileExtension = isMP4 ? 'mp4' : 'webm';
+      const blobType = isMP4 ? 'video/mp4' : 'video/webm';
+
       // Crear blob y descargar
-      const blob = new Blob(recordedChunks, { type: 'video/webm' });
+      const blob = new Blob(recordedChunks, { type: blobType });
 
       // Detectar si es móvil
       const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
@@ -2794,7 +2803,7 @@ async function startCanvasRecording() {
         // Intentar usar Web Share API primero (mejor para móviles)
         if (navigator.share && navigator.canShare) {
           try {
-            const file = new File([blob], `bisiona-video-${Date.now()}.webm`, { type: 'video/webm' });
+            const file = new File([blob], `bisiona-video-${Date.now()}.${fileExtension}`, { type: blobType });
 
             if (navigator.canShare({ files: [file] })) {
               await navigator.share({
@@ -2826,7 +2835,7 @@ async function startCanvasRecording() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `bisiona-video-${Date.now()}.webm`;
+        link.download = `bisiona-video-${Date.now()}.${fileExtension}`;
 
         // Hacer el link visible temporalmente para iOS
         link.style.position = 'fixed';
@@ -2858,7 +2867,7 @@ async function startCanvasRecording() {
         const url = URL.createObjectURL(blob);
         const link = document.createElement('a');
         link.href = url;
-        link.download = `bisiona-video-${Date.now()}.webm`;
+        link.download = `bisiona-video-${Date.now()}.${fileExtension}`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
