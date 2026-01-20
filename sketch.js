@@ -2903,14 +2903,14 @@ async function startCanvasRecording() {
 function stopCanvasRecording() {
   if (!isRecording) return false;
 
-  // Si es grabación de GIF (móvil sin captureStream)
+  // Si es grabación manual de frames (móvil sin captureStream)
   if (window.gifFrameInterval) {
     clearInterval(window.gifFrameInterval);
     window.gifFrameInterval = null;
     isRecording = false;
 
-    // Crear GIF animado con los frames capturados
-    createAnimatedGIF();
+    // Intentar crear MP4 primero, con fallback a GIF
+    createMP4OrGIF();
     return true;
   }
 
@@ -3025,6 +3025,164 @@ async function createVideoFromFrames() {
     // Fallback: crear ZIP con imágenes
     createImageSequence();
   }
+}
+
+async function createMP4OrGIF() {
+  if (recordedFrames.length === 0) {
+    alert('No hay frames grabados');
+    return;
+  }
+
+  const saveBtn = document.getElementById('saveBtn');
+
+  // Detectar si el navegador soporta mp4-muxer y VideoEncoder
+  const supportsMP4 = typeof Mp4Muxer !== 'undefined' && typeof VideoEncoder !== 'undefined';
+
+  if (supportsMP4) {
+    try {
+      saveBtn.textContent = 'Creando MP4...';
+      saveBtn.style.color = '#ff9800';
+
+      await createMP4Video();
+      return;
+    } catch (error) {
+      console.log('Error creando MP4, usando GIF como fallback:', error);
+    }
+  }
+
+  // Fallback a GIF si MP4 no está disponible o falla
+  console.log('Usando GIF como formato de salida');
+  createAnimatedGIF();
+}
+
+async function createMP4Video() {
+  const saveBtn = document.getElementById('saveBtn');
+
+  // Crear muxer para MP4
+  const muxer = new Mp4Muxer.Muxer({
+    target: new Mp4Muxer.ArrayBufferTarget(),
+    video: {
+      codec: 'avc',
+      width: 540,
+      height: 675
+    },
+    fastStart: 'in-memory'
+  });
+
+  // Crear encoder de video
+  const encoder = new VideoEncoder({
+    output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+    error: (e) => {
+      console.error('Error en VideoEncoder:', e);
+      throw e;
+    }
+  });
+
+  encoder.configure({
+    codec: 'avc1.42001E',
+    width: 540,
+    height: 675,
+    bitrate: 2_000_000,
+    framerate: 10
+  });
+
+  // Codificar cada frame
+  for (let i = 0; i < recordedFrames.length; i++) {
+    const imageData = recordedFrames[i];
+
+    // Crear VideoFrame desde ImageData
+    const videoFrame = new VideoFrame(imageData, {
+      timestamp: i * 100000, // 100ms entre frames (10 FPS)
+      duration: 100000
+    });
+
+    encoder.encode(videoFrame, { keyFrame: i % 30 === 0 });
+    videoFrame.close();
+
+    // Actualizar progreso
+    const percent = Math.round((i / recordedFrames.length) * 100);
+    saveBtn.textContent = `Creando MP4 ${percent}%`;
+  }
+
+  // Finalizar encoding
+  await encoder.flush();
+  encoder.close();
+  muxer.finalize();
+
+  // Obtener el buffer del MP4
+  const buffer = muxer.target.buffer;
+  const blob = new Blob([buffer], { type: 'video/mp4' });
+
+  // Compartir o descargar
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
+  if (isMobile && navigator.share && navigator.canShare) {
+    try {
+      const file = new File([blob], `bisiona-${Date.now()}.mp4`, { type: 'video/mp4' });
+      if (navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: 'Bisiona Video',
+          text: 'Mi video creado con Bisiona'
+        });
+
+        saveBtn.textContent = '✓ MP4 Compartido';
+        saveBtn.style.color = '#4285f4';
+        setTimeout(() => {
+          saveBtn.textContent = 'Gravar';
+          saveBtn.style.color = '';
+        }, 2000);
+
+        recordedFrames = [];
+        return;
+      }
+    } catch (error) {
+      console.log('Web Share no disponible:', error);
+    }
+  }
+
+  // Descarga directa
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `bisiona-${Date.now()}.mp4`;
+
+  if (isMobile) {
+    link.style.position = 'fixed';
+    link.style.top = '50%';
+    link.style.left = '50%';
+    link.style.transform = 'translate(-50%, -50%)';
+    link.style.zIndex = '10000';
+    link.style.padding = '20px';
+    link.style.background = 'rgba(0,0,0,0.8)';
+    link.style.color = 'white';
+    link.style.borderRadius = '8px';
+    link.textContent = 'Toca aquí para descargar el MP4';
+
+    document.body.appendChild(link);
+
+    setTimeout(() => {
+      link.click();
+      setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      }, 3000);
+    }, 100);
+  } else {
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
+
+  saveBtn.textContent = '✓ MP4 Listo';
+  saveBtn.style.color = '#4285f4';
+  setTimeout(() => {
+    saveBtn.textContent = 'Gravar';
+    saveBtn.style.color = '';
+  }, 2000);
+
+  recordedFrames = [];
 }
 
 function createAnimatedGIF() {
